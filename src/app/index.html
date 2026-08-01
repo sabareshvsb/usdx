@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USDX GUIDE - Compounding Guide</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['"Outfit"', 'sans-serif'],
+          },
+          colors: {
+            gold: {
+              300: '#F5E08B',
+              400: '#E2B842',
+              500: '#D4A017',
+              600: '#B8860B',
+              700: '#8A6200',
+            },
+            dark: {
+              900: '#08080A',
+              800: '#111116',
+              700: '#1A1A22',
+              600: '#252530',
+            }
+          },
+          backgroundImage: {
+            'gold-gradient': 'linear-gradient(135deg, #F3E5AB 0%, #D4AF37 50%, #996515 100%)',
+            'gold-button': 'linear-gradient(180deg, #E6C265 0%, #C8992D 100%)',
+            'card-gradient': 'linear-gradient(180deg, rgba(25, 25, 33, 0.7) 0%, rgba(15, 15, 20, 0.8) 100%)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Gold Text Gradient */
+    .text-gold-gradient {
+      background: linear-gradient(180deg, #FFF0B3 0%, #E0B438 60%, #B8860B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* Glow effect for highlighted cards */
+    .gold-glow {
+      box-shadow: 0 0 25px rgba(212, 160, 23, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-dark-900 text-gray-200 font-sans min-h-screen selection:bg-gold-500 selection:text-black">
+
+  <!-- Background Glowing Effects -->
+  <div class="fixed top-0 right-0 w-[500px] h-[500px] bg-gold-500/10 rounded-full blur-[140px] pointer-events-none"></div>
+  <div class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-gold-600/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <!-- Navigation Header -->
+  <header class="border-b border-dark-600/50 backdrop-blur-md sticky top-0 z-50 bg-dark-900/80">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-lg bg-gold-button p-[1px] flex items-center justify-center">
+          <div class="w-full h-full bg-dark-900 rounded-[7px] flex items-center justify-center">
+            <svg class="w-5 h-5 text-gold-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+        </div>
+        <span class="font-heading font-bold text-xl tracking-wider text-white">USDX <span class="text-gold-400 font-normal">GUIDE</span></span>
+      </a>
+
+      <!-- Desktop Nav Menu -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
+        <a href="#" class="text-gold-400 font-semibold border-b-2 border-gold-400 pb-1">Home</a>
+        <a href="#plans" class="hover:text-gold-300 transition-colors">$500</a>
+        <a href="#plans" class="hover:text-gold-300 transition-colors">$1000</a>
+        <a href="#plans" class="hover:text-gold-300 transition-colors">$5000</a>
+        <a href="#faq" class="hover:text-gold-300 transition-colors">FAQ</a>
+        <a href="#contact" class="hover:text-gold-300 transition-colors">Contact</a>
+      </nav>
+
+      <!-- Dashboard CTA Button -->
+      <a href="#" class="hidden sm:flex items-center gap-2 border border-gold-500/40 hover:border-gold-400 text-gold-300 hover:text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gold-500/10">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+        </svg>
+        Dashboard
+      </a>
+
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="max-w-7xl mx-auto px-6 pt-16 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+    
+    <!-- Left Hero Content -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <div class="flex items-center gap-3">
+        <span class="text-gold-400 text-xs font-bold tracking-widest uppercase">USDX SMART</span>
+        <div class="h-[1px] w-12 bg-gold-500/40"></div>
+      </div>
+
+      <h1 class="font-heading text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-none">
+        Compounding <br />
+        <span class="text-gold-gradient">Guide</span>
+      </h1>
+
+      <p class="text-xs font-bold tracking-widest text-gray-400 uppercase">
+        BY YOUTH WING
+      </p>
+
+      <p class="text-gray-400 text-base sm:text-lg leading-relaxed max-w-xl">
+        A professional roadmap specially designed for <span class="text-gold-400 font-semibold">USDX SMART</span> members. Learn and follow the complete monthly process for the 
+        <span class="text-gold-400 font-semibold">$500, $1000,</span> and <span class="text-gold-400 font-semibold">$5000</span> plans.
+      </p>
+
+      <!-- Buttons -->
+      <div class="flex flex-wrap items-center gap-4 pt-4">
+        <a href="#plans" class="bg-gold-button text-dark-900 font-bold px-7 py-3.5 rounded-lg text-sm flex items-center gap-2 hover:brightness-110 transition-all shadow-lg shadow-gold-500/10">
+          Explore Plans
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+
+        <a href="#" class="border border-gold-500/40 hover:border-gold-400 text-gold-300 px-6 py-3.5 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-gold-500/10 transition-all">
+          Open Dashboard
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Right Hero Visual (3D Coin & Chart Graphic Representation) -->
+    <div class="lg:col-span-5 flex justify-center relative">
+      <div class="relative w-full max-w-md aspect-square flex items-center justify-center">
+        
+        <!-- Glowing background ring -->
+        <div class="absolute inset-0 bg-gold-500/20 rounded-full blur-3xl"></div>
+        
+        <!-- Stylized 3D Golden Podium & Coin Container -->
+        <div class="relative z-10 w-full h-full flex items-center justify-center">
+          
+          <!-- Upward Arrow & Bar Graphic Backing -->
+          <svg class="absolute w-full h-full opacity-30" viewBox="0 0 200 200" fill="none">
+            <path d="M20 160 L70 120 L120 130 L180 30" stroke="#D4AF37" stroke-width="4" stroke-dasharray="4 4" />
+            <path d="M160 30 H180 V50" stroke="#D4AF37" stroke-width="4" />
+            <rect x="130" y="100" width="12" height="60" fill="#D4AF37" opacity="0.4" rx="2" />
+            <rect x="150" y="70" width="12" height="90" fill="#D4AF37" opacity="0.6" rx="2" />
+            <rect x="170" y="40" width="12" height="120" fill="#D4AF37" opacity="0.8" rx="2" />
+          </svg>
+
+          <!-- Gold Coin Graphic Placeholder -->
+          <div class="w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-gold-700 via-gold-400 to-gold-300 p-2 shadow-2xl shadow-gold-500/30 flex items-center justify-center transform hover:scale-105 transition-transform duration-500">
+            <div class="w-full h-full rounded-full bg-dark-900 border-4 border-gold-500/60 flex items-center justify-center">
+              <span class="font-heading font-extrabold text-5xl sm:text-6xl text-gold-400 tracking-tighter">X</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Feature Grid / Stats Section -->
+  <section class="max-w-7xl mx-auto px-6 py-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Stat Card 1 -->
+      <div class="bg-card-gradient border border-dark-600/80 hover:border-gold-500/40 rounded-xl p-5 flex items-start gap-4 transition-all">
+        <div class="p-3 bg-dark-700/80 rounded-lg border border-gold-500/20 text-gold-400">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-heading text-2xl font-bold text-white">60+</h3>
+          <p class="text-sm font-semibold text-gray-200">Months</p>
+          <p class="text-xs text-gray-400 mt-1">Complete Roadmap</p>
+        </div>
+      </div>
+
+      <!-- Stat Card 2 -->
+      <div class="bg-card-gradient border border-dark-600/80 hover:border-gold-500/40 rounded-xl p-5 flex items-start gap-4 transition-all">
+        <div class="p-3 bg-dark-700/80 rounded-lg border border-gold-500/20 text-gold-400">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-heading text-2xl font-bold text-white">3</h3>
+          <p class="text-sm font-semibold text-gray-200">Investment Plans</p>
+          <p class="text-xs text-gray-400 mt-1">$500, $1000, $5000</p>
+        </div>
+      </div>
+
+      <!-- Stat Card 3 -->
+      <div class="bg-card-gradient border border-dark-600/80 hover:border-gold-500/40 rounded-xl p-5 flex items-start gap-4 transition-all">
+        <div class="p-3 bg-dark-700/80 rounded-lg border border-gold-500/20 text-gold-400">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-heading text-2xl font-bold text-white">100%</h3>
+          <p class="text-sm font-semibold text-gray-200">Step-by-Step Guide</p>
+          <p class="text-xs text-gray-400 mt-1">Easy to Follow</p>
+        </div>
+      </div>
+
+      <!-- Stat Card 4 -->
+      <div class="bg-card-gradient border border-dark-600/80 hover:border-gold-500/40 rounded-xl p-5 flex items-start gap-4 transition-all">
+        <div class="p-3 bg-dark-700/80 rounded-lg border border-gold-500/20 text-gold-400">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-heading text-2xl font-bold text-white">24/7</h3>
+          <p class="text-sm font-semibold text-gray-200">Lifetime Access</p>
+          <p class="text-xs text-gray-400 mt-1">Anytime, Anywhere</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Investment Plans Section -->
+  <section id="plans" class="max-w-7xl mx-auto px-6 pt-12 pb-20">
+    
+    <!-- Section Title -->
+    <div class="text-center space-y-3 mb-12">
+      <h2 class="font-heading text-3xl sm:text-4xl font-bold text-white">
+        Choose Your Investment Plan
+      </h2>
+      <div class="h-1 w-12 bg-gold-500/50 mx-auto rounded-full"></div>
+    </div>
+
+    <!-- Pricing Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+      
+      <!-- Starter Plan ($500) -->
+      <div class="bg-card-gradient border border-dark-600/80 hover:border-gold-500/30 rounded-2xl p-6 flex flex-col justify-between transition-all">
+        <div>
+          <div class="w-12 h-12 rounded-xl bg-dark-700 border border-gold-500/30 flex items-center justify-center mb-6 text-gold-400">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-4xl font-extrabold text-white mb-1">$500</h3>
+          <p class="text-gold-400 font-semibold text-sm mb-2">Starter Plan</p>
+          <p class="text-gray-400 text-xs">Perfect for beginners</p>
+        </div>
+
+        <div class="pt-8">
+          <a href="#" class="w-full py-3 border border-gold-500/30 hover:border-gold-400 text-white hover:text-gold-300 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all">
+            View Guide
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Advanced Plan ($1000 - Highlighted) -->
+      <div class="relative bg-card-gradient border-2 border-gold-500/80 rounded-2xl p-6 flex flex-col justify-between gold-glow transform md:-translate-y-2 transition-all">
+        
+        <!-- Most Popular Badge -->
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gold-button text-dark-900 text-[10px] font-extrabold tracking-widest uppercase px-4 py-1 rounded-full">
+          MOST POPULAR
+        </div>
+
+        <div>
+          <div class="w-12 h-12 rounded-xl bg-dark-700 border border-gold-500/50 flex items-center justify-center mb-6 text-gold-400">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-4xl font-extrabold text-white mb-1">$1000</h3>
+          <p class="text-gold-400 font-semibold text-sm mb-2">Advanced Plan</p>
+          <p class="text-gray-400 text-xs">Grow your income faster</p>
+        </div>
+
+        <div class="pt-8">
+          <a href="#" class="w-full py-3 bg-gold-button hover:brightness-110 text-dark-900 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md">
+            View Guide
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Professional Plan ($5000) -->
+      <div class="bg-card-gradient border border-dark-600/80 hover:border-gold-500/30 rounded-2xl p-6 flex flex-col justify-between transition-all">
+        <div>
+          <div class="w-12 h-12 rounded-xl bg-dark-700 border border-gold-500/30 flex items-center justify-center mb-6 text-gold-400">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-4xl font-extrabold text-white mb-1">$5000</h3>
+          <p class="text-gold-400 font-semibold text-sm mb-2">Professional Plan</p>
+          <p class="text-gray-400 text-xs">Maximum growth potential</p>
+        </div>
+
+        <div class="pt-8">
+          <a href="#" class="w-full py-3 border border-gold-500/30 hover:border-gold-400 text-white hover:text-gold-300 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all">
+            View Guide
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Down Navigation Indicator -->
+    <div class="flex justify-center mt-12">
+      <a href="#more" class="w-10 h-10 rounded-full border border-gold-500/40 text-gold-400 flex items-center justify-center hover:border-gold-400 transition-colors">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M19 9l-7 7-7-7"/>
+        </svg>
+      </a>
+    </div>
+
+  </section>
+
+</body>
+</html>
