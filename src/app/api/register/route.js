@@ -56,7 +56,9 @@ function buildWelcomeHtml(name) {
 }
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS,
@@ -92,9 +94,15 @@ export async function POST(request) {
     await transporter.sendMail({
       from: `"USDX-SMART Team" <${user}>`,
       to: email,
+      replyTo: user,
       subject: "Welcome to the USDX-SMART Compounding Scheme",
       text: buildWelcomeText(name),
       html: buildWelcomeHtml(name),
+      headers: {
+        "X-Priority": "3",
+        "List-Unsubscribe": `<mailto:${user}?subject=unsubscribe>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     });
 
     return Response.json({ success: true });
