@@ -128,7 +128,7 @@ export default function LandingExperience() {
           <p className="eyebrow reveal-hero"><span /> USDX / COMPOUNDING INTELLIGENCE</p>
           <h1 className="reveal-hero">Build momentum.<br /><em>Compound clarity.</em></h1>
           <p className="hero-description reveal-hero">A precision workspace for seeing the path, owning each milestone, and making your next move with confidence.</p>
-          <div className="hero-actions reveal-hero"><a href="#protocol" className="primary-cta">Explore the protocol <span>→</span></a><Link href="/guide" className="text-cta">Open Guide <span>↗</span></Link></div>
+          <div className="hero-actions reveal-hero"><Link href="/register" className="primary-cta">Register Now <span>→</span></Link><a href="#protocol" className="text-cta">Explore the protocol <span>→</span></a><Link href="/guide" className="text-cta">Open Guide <span>↗</span></Link></div>
           <div className="trust-line reveal-hero"><span className="avatars">◉ ◉ ◉</span><span>Designed for focused growth.<br />Built for the long run.</span></div>
         </div>
         <div className="hero-visual orbital">

@@ -1,0 +1,101 @@
+import { Resend } from "resend";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function buildWelcomeText(name) {
+  return `Dear ${name},
+
+Welcome to the USDX-SMART Compounding Scheme!
+
+Thank you for registering with us. We sincerely appreciate your trust and are excited to have you as a part of the USDX-SMART community.
+
+Your registration has been successfully received, and you are now one step closer to exploring the opportunities offered through the USDX-SMART Compounding Scheme.
+
+Credits
+
+This registration has been successfully credited to the Youth Wing.
+
+Our team is committed to supporting you throughout your journey. If you have any questions or need assistance, please feel free to contact us.
+
+Thank you once again for choosing USDX-SMART.
+
+Best Regards,
+USDX-SMART Team
+Youth Wing`;
+}
+
+function buildWelcomeHtml(name) {
+  const paragraph = (text) => `<p style="margin:0 0 18px;font-size:15px;line-height:1.75;color:#d7dbe8;">${text}</p>`;
+  return `<!DOCTYPE html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#070812;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#070812;padding:40px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:linear-gradient(135deg,rgba(255,255,255,.095),rgba(255,255,255,.025));border:1px solid rgba(212,225,255,.16);border-radius:16px;padding:40px;font-family:Arial,Helvetica,sans-serif;">
+            <tr>
+              <td>
+                <p style="margin:0 0 26px;font-size:12px;letter-spacing:.14em;color:#57f4ff;font-family:'Courier New',monospace;">USDX / COMPOUNDING INTELLIGENCE</p>
+                <h1 style="margin:0 0 8px;font-size:24px;line-height:1.25;color:#ffffff;font-family:Arial,Helvetica,sans-serif;">Dear ${name},</h1>
+                <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#d7dbe8;">Welcome to the <strong style="color:#ffffff;">USDX-SMART Compounding Scheme</strong>!</p>
+                ${paragraph("Thank you for registering with us. We sincerely appreciate your trust and are excited to have you as a part of the USDX-SMART community.")}
+                ${paragraph("Your registration has been successfully received, and you are now one step closer to exploring the opportunities offered through the USDX-SMART Compounding Scheme.")}
+                <h2 style="margin:26px 0 10px;font-size:13px;letter-spacing:.16em;color:#57f4ff;">CREDITS</h2>
+                ${paragraph("This registration has been successfully credited to the <strong style='color:#ffffff;'>Youth Wing</strong>.")}
+                ${paragraph("Our team is committed to supporting you throughout your journey. If you have any questions or need assistance, please feel free to contact us.")}
+                ${paragraph("Thank you once again for choosing USDX-SMART.")}
+                <p style="margin:26px 0 0;font-size:15px;line-height:1.75;color:#d7dbe8;">Best Regards,<br/><strong style="color:#ffffff;">USDX-SMART Team</strong><br/>Youth Wing</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+export async function POST(request) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+
+  if (!name) {
+    return Response.json({ error: "Please provide your name." }, { status: 400 });
+  }
+  if (!email || !EMAIL_REGEX.test(email)) {
+    return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return Response.json({ error: "Resend API key is not configured." }, { status: 500 });
+  }
+
+  const from = process.env.EMAIL_FROM || "USDX-SMART <onboarding@resend.dev>";
+
+  try {
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({
+      from,
+      to: email,
+      subject: "Welcome to the USDX-SMART Compounding Scheme",
+      text: buildWelcomeText(name),
+      html: buildWelcomeHtml(name),
+    });
+
+    if (error) {
+      return Response.json({ error: error.message || "Failed to send welcome email." }, { status: 500 });
+    }
+
+    return Response.json({ success: true, id: data.id });
+  } catch (err) {
+    return Response.json({ error: err.message || "Failed to send welcome email." }, { status: 500 });
+  }
+}
