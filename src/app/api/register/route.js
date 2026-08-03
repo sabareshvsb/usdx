@@ -93,10 +93,11 @@ export async function POST(request) {
 
   if (supabaseConfigured()) {
     try {
+      const today = new Date().toISOString().slice(0, 10);
       const response = await fetch(`${SUPABASE_URL}/rest/v1/usdxcompounding`, {
         method: "POST",
         headers: supabaseHeaders(),
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, "date of stake": today }),
       });
 
       if (!response.ok) {

@@ -65,6 +65,7 @@ function StakeSection({ email }) {
         body: JSON.stringify({
           email,
           dateOfStake: new Date().toISOString().slice(0, 10),
+          stakeAmount: Number(amount.replace(/\D/g, "")),
           notification: notify ? 1 : undefined,
         }),
       });

@@ -24,7 +24,12 @@ export async function POST(request) {
 
   const dateOfStake = typeof body.dateOfStake === "string" ? body.dateOfStake.trim() : "";
   if (dateOfStake) {
-    updates.date_of_stake = dateOfStake;
+    updates["date of stake"] = dateOfStake;
+  }
+
+  const stakeAmount = Number(body.stakeAmount);
+  if (body.stakeAmount !== undefined && [500, 1000, 5000].includes(stakeAmount)) {
+    updates.stake_amount = stakeAmount;
   }
 
   if (body.notification === 1 || body.notification === "1" || body.notification === true) {
