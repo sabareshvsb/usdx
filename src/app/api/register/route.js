@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -55,6 +55,14 @@ function buildWelcomeHtml(name) {
 </html>`;
 }
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
 export async function POST(request) {
   let body;
   try {
@@ -73,28 +81,23 @@ export async function POST(request) {
     return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return Response.json({ error: "Resend API key is not configured." }, { status: 500 });
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_PASS;
+
+  if (!user || !pass) {
+    return Response.json({ error: "Gmail credentials are not configured." }, { status: 500 });
   }
 
-  const from = process.env.EMAIL_FROM || "USDX-SMART <onboarding@resend.dev>";
-
   try {
-    const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send({
-      from,
+    await transporter.sendMail({
+      from: `"USDX-SMART Team" <${user}>`,
       to: email,
       subject: "Welcome to the USDX-SMART Compounding Scheme",
       text: buildWelcomeText(name),
       html: buildWelcomeHtml(name),
     });
 
-    if (error) {
-      return Response.json({ error: error.message || "Failed to send welcome email." }, { status: 500 });
-    }
-
-    return Response.json({ success: true, id: data.id });
+    return Response.json({ success: true });
   } catch (err) {
     return Response.json({ error: err.message || "Failed to send welcome email." }, { status: 500 });
   }
