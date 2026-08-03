@@ -3,7 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
-import { useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+
+const subscribeToRegisteredEmail = (callback) => {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+};
+
+const getRegisteredEmailSnapshot = () => window.localStorage.getItem("usdx_registered_email") || "";
+const getRegisteredEmailServerSnapshot = () => "";
 
 const features = [
   ["01", "Clear cadence", "A visual monthly path that turns a complex process into clear next actions."],
@@ -16,11 +25,123 @@ const showcase = [
   ["THE SYSTEM", "Structure that stays elegant.", "From plan selection to progress tracking, every interaction is designed to feel immediate, calm, and intentional."],
 ];
 
+function StakeSection({ email }) {
+  const router = useRouter();
+  const [step, setStep] = useState(0);
+  const [amount, setAmount] = useState("");
+  const [notify, setNotify] = useState(null);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleStakeNo = () => router.push("/guide");
+
+  const handleStakeYes = () => {
+    setError("");
+    setStep(1);
+  };
+
+  const handleAmount = (value) => {
+    setError("");
+    setAmount(value);
+    setStep(2);
+  };
+
+  const handleNotify = (value) => {
+    setError("");
+    setNotify(value);
+  };
+
+  const handleContinue = async () => {
+    if (!amount || notify === null) {
+      setError("Kindly fill all details.");
+      return;
+    }
+    setError("");
+    setSaving(true);
+    try {
+      const response = await fetch("/api/stake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          dateOfStake: new Date().toISOString().slice(0, 10),
+          notification: notify ? 1 : undefined,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Could not save your stake details.");
+      }
+      setStep(0);
+      setAmount("");
+      setNotify(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="stake-section glass-panel scroll-reveal">
+      <div className="stake-step">
+        {step === 0 && (
+          <>
+            <p className="eyebrow stake-eyebrow"><span /> USDX / STAKE CHECK-IN</p>
+            <h2 className="stake-title">DID YOU STAKE?</h2>
+            <p className="stake-question">Let us keep your progress updated. Have you staked into the USDX-SMART Compounding Scheme?</p>
+            <div className="stake-options">
+              <button type="button" className="stake-yes" onClick={handleStakeYes}>Yes</button>
+              <button type="button" className="stake-no" onClick={handleStakeNo}>No</button>
+            </div>
+          </>
+        )}
+
+        {step === 1 && (
+          <>
+            <p className="eyebrow stake-eyebrow"><span /> USDX / STAKE AMOUNT</p>
+            <h2 className="stake-title">HOW MUCH HAVE YOU STAKED?</h2>
+            <p className="stake-question">Select the plan you have invested in.</p>
+            <div className="stake-options">
+              <button type="button" className="stake-option" onClick={() => handleAmount("$500")}>$500</button>
+              <button type="button" className="stake-option" onClick={() => handleAmount("$1000")}>$1000</button>
+              <button type="button" className="stake-option" onClick={() => handleAmount("$5000")}>$5000</button>
+            </div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <p className="eyebrow stake-eyebrow"><span /> USDX / NOTIFICATIONS</p>
+            <h2 className="stake-title">MONTHLY PROGRESS EMAIL?</h2>
+            <p className="stake-question">Would you like to receive a monthly email notifying you of your investment progress?</p>
+            <div className="stake-options">
+              <button type="button" className={`stake-yes ${notify === true ? "stake-selected" : ""}`} onClick={() => handleNotify(true)}>Yes</button>
+              <button type="button" className={`stake-no ${notify === false ? "stake-selected" : ""}`} onClick={() => handleNotify(false)}>No</button>
+            </div>
+            <button type="button" className="primary-cta stake-continue" onClick={handleContinue} disabled={saving}>
+              {saving ? "Saving…" : (<><span className="register-submit-label">Continue</span><span aria-hidden="true">→</span></>)}
+            </button>
+          </>
+        )}
+
+        {error ? <p className="stake-error" role="alert">{error}</p> : null}
+      </div>
+    </section>
+  );
+}
+
 export default function LandingExperience() {
   const canvasRef = useRef(null);
   const pageRef = useRef(null);
   const initialized = useRef(false);
   const cleanupRef = useRef(() => {});
+  const registeredEmail = useSyncExternalStore(
+    subscribeToRegisteredEmail,
+    getRegisteredEmailSnapshot,
+    getRegisteredEmailServerSnapshot
+  );
 
   const initialise = useCallback(() => {
     if (
@@ -162,6 +283,7 @@ export default function LandingExperience() {
       <section id="signal" className="showcase">{showcase.map(([label, title, text], index) => <article className={`showcase-row scroll-reveal ${index ? "reverse" : ""}`} key={label}><div className="showcase-art glass-panel"><div className={`art-grid art-${index + 1}`}><span /><span /><span /><span /><span /></div><div className="art-readout">{index ? "S Y S T E M" : "0 1 1 0 1 0"}</div></div><div className="showcase-copy"><p>{label}</p><h2>{title}</h2><span className="line" /><p className="body-copy">{text}</p><Link href="/guide">Discover the experience <b>↗</b></Link></div></article>)}</section>
 
       <section className="final-cta scroll-reveal"><div className="final-glow" /><p>THE NEXT MOVE IS YOURS</p><h2>Make the long view<br /><em>feel within reach.</em></h2><Link href="/guide" className="primary-cta">Start your journey <span>→</span></Link></section>
+      {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
       <footer className="landing-footer flex-wrap items-start gap-8">
         <div className="flex items-center gap-3"><Image src="/images/youth-wing.jpeg" alt="USDX Smart Youth Wing" width={48} height={48} className="h-12 w-12 rounded-full border border-cyan-300/40 object-cover" /><div className="flex flex-col gap-1"><span>YOUTH WING</span><strong className="text-xs tracking-[.08em] text-white">SABARESH V S B</strong><a className="text-cyan-300 hover:text-white" href="tel:+919003788941">+91 90037 88941</a></div></div>
         <div className="flex items-center gap-3"><Image src="/images/vision-builders.jpeg" alt="Vision Builders" width={48} height={48} className="h-12 w-12 rounded-full border border-cyan-300/40 object-cover" /><div className="flex flex-col gap-1"><span>VISION BUILDERS LEADER</span><strong className="text-xs tracking-[.08em] text-white">ARUL SABARISH</strong><a className="text-cyan-300 hover:text-white" href="tel:+917418485677">+91 74184 85677</a></div></div>

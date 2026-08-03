@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -33,11 +34,16 @@ export default function RegisterPage() {
         throw new Error(data.error || "Registration failed. Please try again.");
       }
 
-      router.replace("/");
+      localStorage.setItem("usdx_registered_email", email.trim());
+      setRegistered(true);
     } catch (err) {
       setError(err.message);
       setSubmitting(false);
     }
+  };
+
+  const goToLanding = () => {
+    router.replace("/");
   };
 
   return (
@@ -65,6 +71,19 @@ export default function RegisterPage() {
           </button>
         </form>
       </section>
+
+      {registered ? (
+        <div className="register-modal" role="dialog" aria-modal="true" aria-label="Registration successful">
+          <div className="register-modal-card glass-panel">
+            <span className="register-modal-check">✓</span>
+            <h2>REGISTRATION SUCCESSFUL</h2>
+            <p>Thank you, {name.trim()}! Your details have been received and a welcome email is on its way to {email.trim()}.</p>
+            <button type="button" className="primary-cta register-modal-cta" onClick={goToLanding}>
+              <span className="register-submit-label">Continue to Landing</span><span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

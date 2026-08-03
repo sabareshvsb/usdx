@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { SUPABASE_URL, supabaseHeaders, supabaseConfigured, isDuplicateKeyError } from "../../../lib/supabase";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -88,6 +89,25 @@ export async function POST(request) {
 
   if (!user || !pass) {
     return Response.json({ error: "Gmail credentials are not configured." }, { status: 500 });
+  }
+
+  if (supabaseConfigured()) {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/usdxcompounding`, {
+        method: "POST",
+        headers: supabaseHeaders(),
+        body: JSON.stringify({ email, name }),
+      });
+
+      if (!response.ok) {
+        const bodyText = await response.text();
+        if (!isDuplicateKeyError(bodyText)) {
+          return Response.json({ error: `Failed to save registration: ${bodyText}` }, { status: 500 });
+        }
+      }
+    } catch (err) {
+      return Response.json({ error: `Failed to save registration: ${err.message}` }, { status: 500 });
+    }
   }
 
   try {
