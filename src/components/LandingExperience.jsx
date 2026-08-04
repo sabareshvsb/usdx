@@ -54,8 +54,6 @@ function LiveTicker() {
     };
   }, []);
 
-  const up = ticker && ticker.priceChange24h >= 0;
-
   return (
     <div className="ticker-bar glass-panel">
       <span className="ticker-label">USDX LIVE</span>
@@ -65,8 +63,6 @@ function LiveTicker() {
         <>
           <span className="ticker-symbol">USDXSMART</span>
           <strong className="ticker-value">${ticker.priceUsd.toFixed(4)}</strong>
-          <span className={`ticker-change ${up ? "up" : "down"}`}>{up ? "▲" : ""} {Math.abs(ticker.priceChange24h).toFixed(2)}%</span>
-          <span className="ticker-24h">24H</span>
         </>
       ) : (
         <span className="ticker-value">LOADING…</span>
