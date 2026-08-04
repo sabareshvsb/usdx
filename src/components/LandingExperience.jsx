@@ -25,6 +25,56 @@ const showcase = [
   ["THE SYSTEM", "Structure that stays elegant.", "From plan selection to progress tracking, every interaction is designed to feel immediate, calm, and intentional."],
 ];
 
+const TOKEN_PRICE_URL = "/api/token-price";
+
+function LiveTicker() {
+  const [ticker, setTicker] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const response = await fetch(TOKEN_PRICE_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error("price feed failed");
+        const data = await response.json();
+        if (!cancelled && data && Number.isFinite(data.priceUsd)) {
+          setTicker(data);
+          setError(false);
+        }
+      } catch (err) {
+        if (!cancelled) setError(true);
+      }
+    };
+    load();
+    const interval = setInterval(load, 60000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const up = ticker && ticker.priceChange24h >= 0;
+
+  return (
+    <div className="ticker-bar glass-panel">
+      <span className="ticker-label">USDX LIVE</span>
+      {error && !ticker ? (
+        <span className="ticker-value ticker-unavailable">PRICE UNAVAILABLE</span>
+      ) : ticker ? (
+        <>
+          <span className="ticker-symbol">USDXSMART</span>
+          <strong className="ticker-value">${ticker.priceUsd.toFixed(4)}</strong>
+          <span className={`ticker-change ${up ? "up" : "down"}`}>{up ? "▲" : "▼"} {Math.abs(ticker.priceChange24h).toFixed(2)}%</span>
+          <span className="ticker-24h">24H</span>
+        </>
+      ) : (
+        <span className="ticker-value">LOADING…</span>
+      )}
+    </div>
+  );
+}
+
 function StakeSection({ email }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -307,6 +357,8 @@ export default function LandingExperience() {
         <div className="nav-links"><a href="#protocol">Protocol</a><a href="#capabilities">Capabilities</a><a href="#signal">Signal</a></div>
         <Link href="/guide" className="nav-cta">Open guide <b>↗</b></Link>
       </nav>
+
+      <LiveTicker />
 
       <div className="collab-frame reveal-hero">
         <Image src="/images/collabration.jpeg" alt="Youth Wing and Vision Builders collaboration" width={220} height={220} className="collab-photo" />
