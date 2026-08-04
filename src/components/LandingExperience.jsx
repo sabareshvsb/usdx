@@ -65,7 +65,7 @@ function LiveTicker() {
         <>
           <span className="ticker-symbol">USDXSMART</span>
           <strong className="ticker-value">${ticker.priceUsd.toFixed(4)}</strong>
-          <span className={`ticker-change ${up ? "up" : "down"}`}>{up ? "▲" : "▼"} {Math.abs(ticker.priceChange24h).toFixed(2)}%</span>
+          <span className={`ticker-change ${up ? "up" : "down"}`}>{up ? "▲" : ""} {Math.abs(ticker.priceChange24h).toFixed(2)}%</span>
           <span className="ticker-24h">24H</span>
         </>
       ) : (
