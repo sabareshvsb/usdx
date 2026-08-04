@@ -310,18 +310,8 @@ export default function LandingExperience() {
 
       <section className="hero-section">
         <div className="hero-copy">
-          <div className="collab-stage reveal-hero">
-            <div className="collab-rig">
-              <div className="collab-beam" />
-              <span className="collab-pulse" />
-              <div className="collab-team collab-youth">
-                <Image src="/images/youth-wing.jpeg" alt="USDX Smart Youth Wing" width={66} height={66} />
-              </div>
-              <div className="collab-team collab-vision">
-                <Image src="/images/vision-builders.jpeg" alt="Vision Builders" width={66} height={66} />
-              </div>
-              <p className="collab-label">YOUTH WING ✦ VISION BUILDERS</p>
-            </div>
+          <div className="collab-frame reveal-hero">
+            <Image src="/images/collabration.jpeg" alt="Youth Wing and Vision Builders collaboration" width={460} height={180} className="collab-photo" />
           </div>
           <p className="eyebrow reveal-hero"><span /> USDX / COMPOUNDING INTELLIGENCE</p>
           <h1 className="reveal-hero">Build momentum.<br /><em>Compound clarity.</em></h1>
