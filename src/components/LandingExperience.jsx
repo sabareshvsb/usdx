@@ -84,25 +84,39 @@ function StakeSection({ email }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleStakeNo = () => router.push("/guide");
+  const requireRegistration = () => {
+    if (!email) {
+      router.push(`/register?message=${encodeURIComponent("REGISTER FIRST TO USE THE DID YOU STAKE SECTION")}`);
+      return false;
+    }
+    return true;
+  };
+
+  const handleStakeNo = () => {
+    if (requireRegistration()) router.push("/guide");
+  };
 
   const handleStakeYes = () => {
+    if (!requireRegistration()) return;
     setError("");
     setStep(1);
   };
 
   const handleAmount = (value) => {
+    if (!requireRegistration()) return;
     setError("");
     setAmount(value);
     setStep(2);
   };
 
   const handleNotify = (value) => {
+    if (!requireRegistration()) return;
     setError("");
     setNotify(value);
   };
 
   const handleContinue = async () => {
+    if (!requireRegistration()) return;
     if (!amount || notify === null || !dateOfStake) {
       setError("Kindly fill all details.");
       return;
@@ -389,7 +403,7 @@ export default function LandingExperience() {
         </div>
       </section>
 
-      {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
+      <StakeSection email={registeredEmail} />
 
       <section id="capabilities" className="capabilities scroll-reveal">
         <div className="section-heading"><p>CORE CAPABILITIES</p><h2>One operating system.<br /><span>Complete visibility.</span></h2></div>
