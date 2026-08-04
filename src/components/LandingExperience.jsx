@@ -308,11 +308,12 @@ export default function LandingExperience() {
         <Link href="/guide" className="nav-cta">Open guide <b>↗</b></Link>
       </nav>
 
+      <div className="collab-frame reveal-hero">
+        <Image src="/images/collabration.jpeg" alt="Youth Wing and Vision Builders collaboration" width={220} height={220} className="collab-photo" />
+      </div>
+
       <section className="hero-section">
         <div className="hero-copy">
-          <div className="collab-frame reveal-hero">
-            <Image src="/images/collabration.jpeg" alt="Youth Wing and Vision Builders collaboration" width={460} height={180} className="collab-photo" />
-          </div>
           <p className="eyebrow reveal-hero"><span /> USDX / COMPOUNDING INTELLIGENCE</p>
           <h1 className="reveal-hero">Build momentum.<br /><em>Compound clarity.</em></h1>
           <p className="hero-description reveal-hero">A precision workspace for seeing the path, owning each milestone, and making your next move with confidence.</p>
