@@ -30,6 +30,7 @@ function StakeSection({ email }) {
   const [step, setStep] = useState(0);
   const [amount, setAmount] = useState("");
   const [notify, setNotify] = useState(null);
+  const [dateOfStake, setDateOfStake] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -52,7 +53,7 @@ function StakeSection({ email }) {
   };
 
   const handleContinue = async () => {
-    if (!amount || notify === null) {
+    if (!amount || notify === null || !dateOfStake) {
       setError("Kindly fill all details.");
       return;
     }
@@ -64,7 +65,7 @@ function StakeSection({ email }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          dateOfStake: new Date().toISOString().slice(0, 10),
+          dateOfStake,
           stakeAmount: Number(amount.replace(/\D/g, "")),
           notification: notify ? 1 : undefined,
         }),
@@ -76,6 +77,7 @@ function StakeSection({ email }) {
       setStep(0);
       setAmount("");
       setNotify(null);
+      setDateOfStake("");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err.message);
@@ -120,6 +122,17 @@ function StakeSection({ email }) {
             <div className="stake-options">
               <button type="button" className={`stake-yes ${notify === true ? "stake-selected" : ""}`} onClick={() => handleNotify(true)}>Yes</button>
               <button type="button" className={`stake-no ${notify === false ? "stake-selected" : ""}`} onClick={() => handleNotify(false)}>No</button>
+            </div>
+            <div className="stake-date-field">
+              <label className="stake-date-label" htmlFor="stake-date">WHEN DID YOU STAKE?</label>
+              <input
+                id="stake-date"
+                type="date"
+                className="stake-date"
+                value={dateOfStake}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={(event) => setDateOfStake(event.target.value)}
+              />
             </div>
             <button type="button" className="primary-cta stake-continue" onClick={handleContinue} disabled={saving}>
               {saving ? "Saving…" : (<><span className="register-submit-label">Continue</span><span aria-hidden="true">→</span></>)}
