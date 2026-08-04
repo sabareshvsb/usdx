@@ -147,10 +147,42 @@ function StakeSection({ email }) {
 }
 
 export default function LandingExperience() {
+  const router = useRouter();
   const canvasRef = useRef(null);
   const pageRef = useRef(null);
   const initialized = useRef(false);
   const cleanupRef = useRef(() => {});
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const handleLoginSubmit = async (event) => {
+    event.preventDefault();
+    setLoginError("");
+    if (!loginEmail.trim()) return;
+    setLoginLoading(true);
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail.trim() }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.exists) {
+        localStorage.setItem("usdx_registered_email", loginEmail.trim());
+        router.push(`/user?email=${encodeURIComponent(loginEmail.trim())}`);
+      } else if (response.status === 404) {
+        router.push("/register");
+      } else {
+        setLoginError(data.error || "Could not sign you in.");
+        setLoginLoading(false);
+      }
+    } catch (err) {
+      setLoginError(err.message);
+      setLoginLoading(false);
+    }
+  };
   const registeredEmail = useSyncExternalStore(
     subscribeToRegisteredEmail,
     getRegisteredEmailSnapshot,
@@ -263,7 +295,7 @@ export default function LandingExperience() {
           <p className="eyebrow reveal-hero"><span /> USDX / COMPOUNDING INTELLIGENCE</p>
           <h1 className="reveal-hero">Build momentum.<br /><em>Compound clarity.</em></h1>
           <p className="hero-description reveal-hero">A precision workspace for seeing the path, owning each milestone, and making your next move with confidence.</p>
-          <div className="hero-actions reveal-hero"><Link href="/register" className="primary-cta">Register Now <span>→</span></Link><a href="#protocol" className="text-cta">Explore the protocol <span>→</span></a><Link href="/guide" className="text-cta">Open Guide <span>↗</span></Link></div>
+          <div className="hero-actions reveal-hero"><button type="button" className="login-cta" onClick={() => { setLoginError(""); setLoginEmail(""); setLoginOpen(true); }}>Login <span>→</span></button><Link href="/register" className="primary-cta">Register Now <span>→</span></Link><a href="#protocol" className="text-cta">Explore the protocol <span>→</span></a><Link href="/guide" className="text-cta">Open Guide <span>↗</span></Link></div>
           <div className="trust-line reveal-hero"><span className="avatars">◉ ◉ ◉</span><span>Designed for focused growth.<br />Built for the long run.</span></div>
         </div>
         <div className="hero-visual orbital">
@@ -298,6 +330,26 @@ export default function LandingExperience() {
 
       <section className="final-cta scroll-reveal"><div className="final-glow" /><p>THE NEXT MOVE IS YOURS</p><h2>Make the long view<br /><em>feel within reach.</em></h2><Link href="/guide" className="primary-cta">Start your journey <span>→</span></Link></section>
       {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
+      {loginOpen ? (
+        <div className="login-modal" role="dialog" aria-modal="true" aria-label="Login">
+          <div className="login-modal-card glass-panel">
+            <button type="button" className="login-close" onClick={() => setLoginOpen(false)} aria-label="Close">✕</button>
+            <p className="eyebrow login-eyebrow"><span /> USDX / LOGIN</p>
+            <h2 className="login-title">Welcome <em>back.</em></h2>
+            <p className="login-note">Enter the email you registered with to view your compounding dashboard.</p>
+            <form className="login-form" onSubmit={handleLoginSubmit}>
+              <label className="login-field">
+                <span>Email address</span>
+                <input type="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" required />
+              </label>
+              {loginError ? <p className="login-error" role="alert">{loginError}</p> : null}
+              <button type="submit" className="primary-cta login-submit" disabled={loginLoading}>
+                {loginLoading ? "Signing in…" : (<><span className="register-submit-label">Login</span><span aria-hidden="true">→</span></>)}
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
       <footer className="landing-footer flex-wrap items-start gap-8">
         <div className="flex items-center gap-3"><Image src="/images/youth-wing.jpeg" alt="USDX Smart Youth Wing" width={48} height={48} className="h-12 w-12 rounded-full border border-cyan-300/40 object-cover" /><div className="flex flex-col gap-1"><span>YOUTH WING</span><strong className="text-xs tracking-[.08em] text-white">SABARESH V S B</strong><a className="text-cyan-300 hover:text-white" href="tel:+919003788941">+91 90037 88941</a></div></div>
         <div className="flex items-center gap-3"><Image src="/images/vision-builders.jpeg" alt="Vision Builders" width={48} height={48} className="h-12 w-12 rounded-full border border-cyan-300/40 object-cover" /><div className="flex flex-col gap-1"><span>VISION BUILDERS LEADER</span><strong className="text-xs tracking-[.08em] text-white">ARUL SABARISH</strong><a className="text-cyan-300 hover:text-white" href="tel:+917418485677">+91 74184 85677</a></div></div>
