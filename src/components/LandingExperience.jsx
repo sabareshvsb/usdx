@@ -157,6 +157,21 @@ export default function LandingExperience() {
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("login") === "1") {
+      requestAnimationFrame(() => {
+        setLoginError(params.get("message") || "");
+        setLoginEmail("");
+        setLoginOpen(true);
+      });
+      const url = new URL(window.location.href);
+      url.searchParams.delete("login");
+      url.searchParams.delete("message");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
+
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
     setLoginError("");

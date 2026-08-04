@@ -102,9 +102,10 @@ export async function POST(request) {
 
       if (!response.ok) {
         const bodyText = await response.text();
-        if (!isDuplicateKeyError(bodyText)) {
-          return Response.json({ error: `Failed to save registration: ${bodyText}` }, { status: 500 });
+        if (isDuplicateKeyError(bodyText)) {
+          return Response.json({ error: "You are already registered. Please Log in.", alreadyRegistered: true }, { status: 409 });
         }
+        return Response.json({ error: `Failed to save registration: ${bodyText}` }, { status: 500 });
       }
     } catch (err) {
       return Response.json({ error: `Failed to save registration: ${err.message}` }, { status: 500 });

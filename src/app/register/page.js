@@ -31,6 +31,11 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
+        if (data.alreadyRegistered) {
+          setSubmitting(false);
+          router.replace(`/?login=1&message=${encodeURIComponent(data.error || "You are already registered. Please Log in.")}`);
+          return;
+        }
         throw new Error(data.error || "Registration failed. Please try again.");
       }
 
