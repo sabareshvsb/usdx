@@ -277,6 +277,9 @@ export default function LandingExperience() {
       gsap.utils.toArray(".scroll-reveal").forEach((element) => {
         gsap.from(element, { y: 38, opacity: 0, duration: 0.8, ease: "power3.out", scrollTrigger: { trigger: element, start: "top 86%" } });
       });
+      gsap.utils.toArray(".chart-figure").forEach((element) => {
+        gsap.from(element, { y: 56, opacity: 0, scale: 0.9, rotate: element.classList.contains("chart-flip") ? 5 : -5, duration: 1.05, ease: "power3.out", scrollTrigger: { trigger: element, start: "top 90%" } });
+      });
     }, pageRef);
 
     cleanupRef.current = () => {
@@ -344,6 +347,19 @@ export default function LandingExperience() {
       <section id="signal" className="showcase">{showcase.map(([label, title, text], index) => <article className={`showcase-row scroll-reveal ${index ? "reverse" : ""}`} key={label}><div className="showcase-art glass-panel"><div className={`art-grid art-${index + 1}`}><span /><span /><span /><span /><span /></div><div className="art-readout">{index ? "S Y S T E M" : "0 1 1 0 1 0"}</div></div><div className="showcase-copy"><p>{label}</p><h2>{title}</h2><span className="line" /><p className="body-copy">{text}</p><Link href="/guide">Discover the experience <b>↗</b></Link></div></article>)}</section>
 
       <section className="final-cta scroll-reveal"><div className="final-glow" /><p>THE NEXT MOVE IS YOURS</p><h2>Make the long view<br /><em>feel within reach.</em></h2><Link href="/guide" className="primary-cta">Start your journey <span>→</span></Link></section>
+
+      <section className="chart-section scroll-reveal">
+        <div className="chart-grid">
+          <figure className="chart-figure glass-panel">
+            <figcaption className="chart-label">COMPOUNDING CHART PREPARED BY</figcaption>
+            <Image src="/images/compounding-chart-1.jpeg" alt="USDX compounding chart one" width={460} height={320} className="chart-img" />
+          </figure>
+          <figure className="chart-figure chart-flip glass-panel">
+            <Image src="/images/compounding-chart-2.jpeg" alt="USDX compounding chart two" width={460} height={320} className="chart-img" />
+          </figure>
+        </div>
+      </section>
+
       {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
       {loginOpen ? (
         <div className="login-modal" role="dialog" aria-modal="true" aria-label="Login">
