@@ -84,6 +84,29 @@ function StakeSection({ email }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    if (!email) return;
+    let cancelled = false;
+    const verify = async () => {
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        if (cancelled) return;
+        if (response.status === 404) {
+          localStorage.removeItem("usdx_registered_email");
+          router.replace(`/register?message=${encodeURIComponent("REGISTER FIRST TO USE THE DID YOU STAKE SECTION")}`);
+        }
+      } catch (err) {
+        // network errors must not block access
+      }
+    };
+    verify();
+    return () => { cancelled = true; };
+  }, [email, router]);
+
   const requireRegistration = () => {
     if (!email) {
       router.push(`/register?message=${encodeURIComponent("REGISTER FIRST TO USE THE DID YOU STAKE SECTION")}`);
@@ -403,7 +426,7 @@ export default function LandingExperience() {
         </div>
       </section>
 
-      <StakeSection email={registeredEmail} />
+      {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
 
       <section id="capabilities" className="capabilities scroll-reveal">
         <div className="section-heading"><p>CORE CAPABILITIES</p><h2>One operating system.<br /><span>Complete visibility.</span></h2></div>
