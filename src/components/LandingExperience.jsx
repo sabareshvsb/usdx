@@ -333,6 +333,8 @@ export default function LandingExperience() {
         </div>
       </section>
 
+      {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
+
       <section id="capabilities" className="capabilities scroll-reveal">
         <div className="section-heading"><p>CORE CAPABILITIES</p><h2>One operating system.<br /><span>Complete visibility.</span></h2></div>
         <div className="feature-grid">{features.map(([number, title, description]) => <article className="feature-card glass-panel" key={number}><span className="feature-number">{number}</span><div className="feature-icon">✦</div><h3>{title}</h3><p>{description}</p><a href="#signal">Learn more <b>→</b></a></article>)}</div>
@@ -360,7 +362,6 @@ export default function LandingExperience() {
         </div>
       </section>
 
-      {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
       {loginOpen ? (
         <div className="login-modal" role="dialog" aria-modal="true" aria-label="Login">
           <div className="login-modal-card glass-panel">
