@@ -1,7 +1,7 @@
 export default function manifest() {
   return {
-    name: "USDX SMART Compounding Guide",
-    short_name: "USDX SMART",
+    name: "USDX COMPOUNDING GUIDE",
+    short_name: "USDX COMPOUNDING GUIDE",
     description: "Professional Compounding Guide for $500, $1000 and $5000 Plans",
     start_url: "/",
     display: "standalone",
