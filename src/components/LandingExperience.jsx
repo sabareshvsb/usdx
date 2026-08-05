@@ -409,7 +409,7 @@ export default function LandingExperience() {
           <div className="orbital-ring ring-one" /><div className="orbital-ring ring-two" />
           <div className="core-orb">
             <Image
-              src="/images/usdxlogo-round.png"
+              src="/images/usdx-logo.png"
               alt="USDX Smart Contract coin"
               width={340}
               height={340}
