@@ -1,18 +1,13 @@
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured } from "../../../lib/supabase";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { parseJsonBody, sanitizeEmail, sanitizeDate, sanitizeBoolean, sanitizeStakeAmount } from "../../../lib/validation";
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body." }, { status: 400 });
-  }
+  const parsed = await parseJsonBody(request);
+  if (!parsed.ok) return Response.json({ error: parsed.error }, { status: parsed.status });
 
-  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const email = sanitizeEmail(parsed.data.email);
 
-  if (!email || !EMAIL_REGEX.test(email)) {
+  if (!email) {
     return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
   }
 
@@ -22,18 +17,28 @@ export async function POST(request) {
 
   const updates = {};
 
-  const dateOfStake = typeof body.dateOfStake === "string" ? body.dateOfStake.trim() : "";
-  if (dateOfStake) {
+  const dateOfStake = sanitizeDate(parsed.data.dateOfStake);
+  if (parsed.data.dateOfStake !== undefined) {
+    if (!dateOfStake) {
+      return Response.json({ error: "Please provide a valid stake date (YYYY-MM-DD)." }, { status: 400 });
+    }
     updates["date of stake"] = dateOfStake;
   }
 
-  const stakeAmount = Number(body.stakeAmount);
-  if (body.stakeAmount !== undefined && [500, 1000, 5000].includes(stakeAmount)) {
+  const stakeAmount = sanitizeStakeAmount(parsed.data.stakeAmount);
+  if (parsed.data.stakeAmount !== undefined) {
+    if (stakeAmount === null) {
+      return Response.json({ error: "Please provide a valid stake amount (500, 1000 or 5000)." }, { status: 400 });
+    }
     updates.stake_amount = stakeAmount;
   }
 
-  if (body.notification === 1 || body.notification === "1" || body.notification === true) {
-    updates.notification = 1;
+  const notification = sanitizeBoolean(parsed.data.notification);
+  if (parsed.data.notification !== undefined) {
+    if (notification === null) {
+      return Response.json({ error: "Please provide a valid notification value (true or false)." }, { status: 400 });
+    }
+    updates.notification = notification;
   }
 
   if (Object.keys(updates).length === 0) {

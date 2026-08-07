@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured, isDuplicateKeyError } from "../../../lib/supabase";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { parseJsonBody, sanitizeEmail, sanitizeName, escapeHtml } from "../../../lib/validation";
 
 function buildWelcomeText(name) {
   return `Dear ${name},
@@ -26,6 +25,7 @@ Youth Wing`;
 }
 
 function buildWelcomeHtml(name) {
+  const safeName = escapeHtml(name);
   const paragraph = (text) => `<p style="margin:0 0 18px;font-size:15px;line-height:1.75;color:#d7dbe8;">${text}</p>`;
   return `<!DOCTYPE html>
 <html lang="en">
@@ -37,7 +37,7 @@ function buildWelcomeHtml(name) {
             <tr>
               <td>
                 <p style="margin:0 0 26px;font-size:12px;letter-spacing:.14em;color:#57f4ff;font-family:'Courier New',monospace;">USDX / COMPOUNDING INTELLIGENCE</p>
-                <h1 style="margin:0 0 8px;font-size:24px;line-height:1.25;color:#ffffff;font-family:Arial,Helvetica,sans-serif;">Dear ${name},</h1>
+                <h1 style="margin:0 0 8px;font-size:24px;line-height:1.25;color:#ffffff;font-family:Arial,Helvetica,sans-serif;">Dear ${safeName},</h1>
                 <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#d7dbe8;">Welcome to the <strong style="color:#ffffff;">USDX-SMART Compounding Scheme</strong>!</p>
                 ${paragraph("Thank you for registering with us. We sincerely appreciate your trust and are excited to have you as a part of the USDX-SMART community.")}
                 ${paragraph("Your registration has been successfully received, and you are now one step closer to exploring the opportunities offered through the USDX-SMART Compounding Scheme.")}
@@ -67,20 +67,16 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body." }, { status: 400 });
-  }
+  const parsed = await parseJsonBody(request);
+  if (!parsed.ok) return Response.json({ error: parsed.error }, { status: parsed.status });
 
-  const name = typeof body.name === "string" ? body.name.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const name = sanitizeName(parsed.data.name);
+  const email = sanitizeEmail(parsed.data.email);
 
   if (!name) {
     return Response.json({ error: "Please provide your name." }, { status: 400 });
   }
-  if (!email || !EMAIL_REGEX.test(email)) {
+  if (!email) {
     return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
   }
 

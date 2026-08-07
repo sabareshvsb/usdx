@@ -1,9 +1,8 @@
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured } from "../../../lib/supabase";
+import { parseJsonBody, sanitizeEmail, sanitizeWallet } from "../../../lib/validation";
 
 export const maxDuration = 60;
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const WALLET_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const DEFAULT_USDX_CONTRACT = "0xf38671eA6290b43F30f2b685e86CDD125B86e13a";
 const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 const PLAN_VALUES = { 500: "500", 1000: "1000", 5000: "5000" };
@@ -157,23 +156,16 @@ async function getBlockTimestamp(block) {
 }
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body." }, { status: 400 });
-  }
+  const parsed = await parseJsonBody(request);
+  if (!parsed.ok) return Response.json({ error: parsed.error }, { status: parsed.status });
 
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const walletAddress = typeof body.walletAddress === "string" ? body.walletAddress.trim() : "";
+  const email = sanitizeEmail(parsed.data.email);
+  const walletAddress = sanitizeWallet(parsed.data.walletAddress);
 
-  if (!email || !EMAIL_REGEX.test(email)) {
+  if (!email) {
     return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
   }
   if (!walletAddress) {
-    return Response.json({ error: "Please provide your wallet address." }, { status: 400 });
-  }
-  if (!WALLET_REGEX.test(walletAddress)) {
     return Response.json({ error: "Please provide a valid wallet address (0x + 40 hex characters)." }, { status: 400 });
   }
 

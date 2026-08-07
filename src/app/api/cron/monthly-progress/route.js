@@ -2,6 +2,7 @@ import nodemailer from "nodemailer";
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured } from "../../../../lib/supabase";
 import { plans } from "../../../../data/plans";
 import { findInstruction, cycleForDate } from "../../../../lib/planGuide";
+import { escapeHtml } from "../../../../lib/validation";
 
 export const maxDuration = 60;
 
@@ -34,6 +35,7 @@ Youth Wing`;
 }
 
 function buildProgressHtml(name, amount, cycle, instruction) {
+  const safeName = escapeHtml(name);
   const paragraph = (text) => `<p style="margin:0 0 18px;font-size:15px;line-height:1.75;color:#d7dbe8;">${text}</p>`;
   return `<!DOCTYPE html>
 <html lang="en">
@@ -45,7 +47,7 @@ function buildProgressHtml(name, amount, cycle, instruction) {
             <tr>
               <td>
                 <p style="margin:0 0 26px;font-size:12px;letter-spacing:.14em;color:#57f4ff;font-family:'Courier New',monospace;">USDX / COMPOUNDING PROGRESS</p>
-                <h1 style="margin:0 0 8px;font-size:24px;line-height:1.25;color:#ffffff;font-family:Arial,Helvetica,sans-serif;">Hi ${name},</h1>
+                <h1 style="margin:0 0 8px;font-size:24px;line-height:1.25;color:#ffffff;font-family:Arial,Helvetica,sans-serif;">Hi ${safeName},</h1>
                 <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#d7dbe8;">Here is your <strong style="color:#ffffff;">USDX-SMART</strong> compounding progress update for <strong style="color:#57f4ff;">Cycle ${cycle}</strong>.</p>
                 <h2 style="margin:26px 0 10px;font-size:13px;letter-spacing:.16em;color:#57f4ff;">YOUR STAKED AMOUNT</h2>
                 ${paragraph(`<strong style="color:#ffffff;">$${amount}</strong>`)}

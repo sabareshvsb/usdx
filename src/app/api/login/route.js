@@ -1,18 +1,13 @@
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured } from "../../../lib/supabase";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { parseJsonBody, sanitizeEmail } from "../../../lib/validation";
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body." }, { status: 400 });
-  }
+  const parsed = await parseJsonBody(request);
+  if (!parsed.ok) return Response.json({ error: parsed.error }, { status: parsed.status });
 
-  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const email = sanitizeEmail(parsed.data.email);
 
-  if (!email || !EMAIL_REGEX.test(email)) {
+  if (!email) {
     return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
   }
 

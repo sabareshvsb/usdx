@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured } from "../../../lib/supabase";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { parseJsonBody, sanitizeEmail, sanitizeBoolean } from "../../../lib/validation";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -62,18 +61,17 @@ function buildEnabledHtml() {
 }
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request body." }, { status: 400 });
-  }
+  const parsed = await parseJsonBody(request);
+  if (!parsed.ok) return Response.json({ error: parsed.error }, { status: parsed.status });
 
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const enabled = body.enabled === true || body.enabled === 1 || body.enabled === "1" || body.enabled === "true";
+  const email = sanitizeEmail(parsed.data.email);
+  const enabled = sanitizeBoolean(parsed.data.enabled);
 
-  if (!email || !EMAIL_REGEX.test(email)) {
+  if (!email) {
     return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
+  }
+  if (enabled === null) {
+    return Response.json({ error: "Please provide a valid enabled value (true or false)." }, { status: 400 });
   }
 
   if (!supabaseConfigured()) {
