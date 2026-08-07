@@ -48,6 +48,7 @@ export default function RegisterPage() {
       }
 
       localStorage.setItem("usdx_registered_email", email.trim());
+      localStorage.setItem("usdx_registered_name", name.trim());
       setRegistered(true);
     } catch (err) {
       setError(err.message);

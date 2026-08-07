@@ -21,8 +21,9 @@ export async function POST(request) {
   }
 
   try {
+    const select = encodeURIComponent('email,name');
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/usdxcompounding?email=eq.${encodeURIComponent(email)}`,
+      `${SUPABASE_URL}/rest/v1/usdxcompounding?email=eq.${encodeURIComponent(email)}&select=${select}`,
       {
         method: "GET",
         headers: supabaseHeaders(),
@@ -39,7 +40,7 @@ export async function POST(request) {
       return Response.json({ error: "No account found with this email. Please register first.", exists: false }, { status: 404 });
     }
 
-    return Response.json({ exists: true });
+    return Response.json({ exists: true, name: rows[0].name || "" });
   } catch (err) {
     return Response.json({ error: `Failed to look up account: ${err.message}` }, { status: 500 });
   }

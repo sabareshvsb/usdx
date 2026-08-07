@@ -5,14 +5,17 @@ import Image from "next/image";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { plans } from "../data/plans";
+import { findInstruction, cycleForDate } from "../lib/planGuide";
 
-const subscribeToRegisteredEmail = (callback) => {
+const subscribeToStorage = (callback) => {
   window.addEventListener("storage", callback);
   return () => window.removeEventListener("storage", callback);
 };
 
 const getRegisteredEmailSnapshot = () => window.localStorage.getItem("usdx_registered_email") || "";
-const getRegisteredEmailServerSnapshot = () => "";
+const getRegisteredNameSnapshot = () => window.localStorage.getItem("usdx_registered_name") || "";
+const getEmptyServerSnapshot = () => "";
 
 const features = [
   ["01", "Clear cadence", "A visual monthly path that turns a complex process into clear next actions."],
@@ -71,160 +74,118 @@ function LiveTicker() {
   );
 }
 
-function StakeSection({ email }) {
-  const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [amount, setAmount] = useState("");
-  const [notify, setNotify] = useState(null);
-  const [dateOfStake, setDateOfStake] = useState("");
+function WelcomeBox({ name }) {
+  return (
+    <section className="welcome-section glass-panel scroll-reveal">
+      <p className="eyebrow welcome-eyebrow"><span /> USDX / WELCOME</p>
+      <h2 className="welcome-title">Welcome, <em>{name}</em>, to USDX Compounding.</h2>
+      <p className="welcome-message">Smart decisions today create greater opportunities tomorrow. Let&apos;s build your future together.</p>
+    </section>
+  );
+}
+
+function WalletSection({ email }) {
+  const [walletAddress, setWalletAddress] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [stake, setStake] = useState(null);
+  const [plan, setPlan] = useState("");
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!email) return;
-    let cancelled = false;
-    const verify = async () => {
-      try {
-        const response = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        if (cancelled) return;
-        if (response.status === 404) {
-          localStorage.removeItem("usdx_registered_email");
-          router.replace(`/register?message=${encodeURIComponent("REGISTER FIRST TO USE THE DID YOU STAKE SECTION")}`);
-        }
-      } catch (err) {
-        // network errors must not block access
-      }
-    };
-    verify();
-    return () => { cancelled = true; };
-  }, [email, router]);
-
-  const requireRegistration = () => {
-    if (!email) {
-      router.push(`/register?message=${encodeURIComponent("REGISTER FIRST TO USE THE DID YOU STAKE SECTION")}`);
-      return false;
-    }
-    return true;
-  };
-
-  const handleStakeNo = () => {
-    if (requireRegistration()) router.push("/guide");
-  };
-
-  const handleStakeYes = () => {
-    if (!requireRegistration()) return;
-    setError("");
-    setStep(1);
-  };
-
-  const handleAmount = (value) => {
-    if (!requireRegistration()) return;
-    setError("");
-    setAmount(value);
-    setStep(2);
-  };
-
-  const handleNotify = (value) => {
-    if (!requireRegistration()) return;
-    setError("");
-    setNotify(value);
-  };
-
-  const handleContinue = async () => {
-    if (!requireRegistration()) return;
-    if (!amount || notify === null || !dateOfStake) {
-      setError("Kindly fill all details.");
+  const handleLookup = async (event) => {
+    event.preventDefault();
+    const address = walletAddress.trim();
+    if (!address) {
+      setError("Please enter your wallet address.");
       return;
     }
     setError("");
-    setSaving(true);
+    setStatus("loading");
     try {
-      const response = await fetch("/api/stake", {
+      const response = await fetch("/api/stake-date", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          dateOfStake,
-          stakeAmount: Number(amount.replace(/\D/g, "")),
-          notification: notify ? 1 : undefined,
-        }),
+        body: JSON.stringify({ email, walletAddress: address }),
       });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Could not save your stake details.");
-      }
-      setStep(0);
-      setAmount("");
-      setNotify(null);
-      setDateOfStake("");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not find your stake on BaseScan.");
+      setStake(data);
+      setPlan(data.plan || "");
+      setStatus("done");
     } catch (err) {
       setError(err.message);
-    } finally {
-      setSaving(false);
+      setStatus("idle");
     }
   };
 
+  let instruction = null;
+  let cycle = 1;
+  if (stake && plan && plans[plan]) {
+    const planData = plans[plan];
+    cycle = Math.min(cycleForDate(stake.stakeDate).cycle, planData.horizon);
+    instruction = findInstruction(planData, cycle);
+  }
+
+  const stakeLabel = stake
+    ? new Date(stake.timestamp * 1000).toLocaleString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
   return (
-    <section className="stake-section glass-panel scroll-reveal">
-      <div className="stake-step">
-        {step === 0 && (
-          <>
-            <p className="eyebrow stake-eyebrow"><span /> USDX / STAKE CHECK-IN</p>
-            <h2 className="stake-title">DID YOU STAKE?</h2>
-            <p className="stake-question">Let us keep your progress updated. Have you staked into the USDX-SMART Compounding Scheme?</p>
-            <div className="stake-options">
-              <button type="button" className="stake-yes" onClick={handleStakeYes}>Yes</button>
-              <button type="button" className="stake-no" onClick={handleStakeNo}>No</button>
-            </div>
-          </>
-        )}
+    <section className="wallet-section glass-panel scroll-reveal">
+      <p className="eyebrow wallet-eyebrow"><span /> USDX / STAKE STATUS</p>
+      <h2 className="wallet-title">Enter your wallet address</h2>
+      <p className="wallet-question">Connect your position. Enter the wallet address you staked with so we can pull your stake date and time from BaseScan.</p>
+      <form className="wallet-form" onSubmit={handleLookup}>
+        <input
+          className="wallet-input"
+          type="text"
+          autoComplete="off"
+          spellCheck="false"
+          placeholder="0x…"
+          value={walletAddress}
+          onChange={(event) => setWalletAddress(event.target.value)}
+          disabled={status === "loading"}
+        />
+        <button type="submit" className="primary-cta wallet-submit" disabled={status === "loading"}>
+          {status === "loading" ? "Finding your stake…" : (<><span className="register-submit-label">Find my stake</span><span aria-hidden="true">→</span></>)}
+        </button>
+      </form>
 
-        {step === 1 && (
-          <>
-            <p className="eyebrow stake-eyebrow"><span /> USDX / STAKE AMOUNT</p>
-            <h2 className="stake-title">HOW MUCH HAVE YOU STAKED?</h2>
-            <p className="stake-question">Select the plan you have invested in.</p>
-            <div className="stake-options">
-              <button type="button" className="stake-option" onClick={() => handleAmount("$500")}>$500</button>
-              <button type="button" className="stake-option" onClick={() => handleAmount("$1000")}>$1000</button>
-              <button type="button" className="stake-option" onClick={() => handleAmount("$5000")}>$5000</button>
-            </div>
-          </>
-        )}
+      {error ? <p className="wallet-error" role="alert">{error}</p> : null}
 
-        {step === 2 && (
-          <>
-            <p className="eyebrow stake-eyebrow"><span /> USDX / NOTIFICATIONS</p>
-            <h2 className="stake-title">MONTHLY PROGRESS EMAIL?</h2>
-            <p className="stake-question">Would you like to receive a monthly email notifying you of your investment progress?</p>
-            <div className="stake-options">
-              <button type="button" className={`stake-yes ${notify === true ? "stake-selected" : ""}`} onClick={() => handleNotify(true)}>Yes</button>
-              <button type="button" className={`stake-no ${notify === false ? "stake-selected" : ""}`} onClick={() => handleNotify(false)}>No</button>
-            </div>
-            <div className="stake-date-field">
-              <label className="stake-date-label" htmlFor="stake-date">WHEN DID YOU STAKE?</label>
-              <input
-                id="stake-date"
-                type="date"
-                className="stake-date"
-                value={dateOfStake}
-                max={new Date().toISOString().slice(0, 10)}
-                onChange={(event) => setDateOfStake(event.target.value)}
-              />
-            </div>
-            <button type="button" className="primary-cta stake-continue" onClick={handleContinue} disabled={saving}>
-              {saving ? "Saving…" : (<><span className="register-submit-label">Continue</span><span aria-hidden="true">→</span></>)}
-            </button>
-          </>
-        )}
+      {status === "done" && stake ? (
+        <>
+          <div className="wallet-result">
+            <span className="wallet-result-label">STAKED ON</span>
+            <div className="wallet-result-date">{stakeLabel}</div>
+            <a className="wallet-result-tx" href={`https://basescan.org/tx/${stake.txHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan ↗</a>
+          </div>
 
-        {error ? <p className="stake-error" role="alert">{error}</p> : null}
-      </div>
+          <p className="wallet-plan-heading">SELECT YOUR PLAN</p>
+          <div className="wallet-options">
+            {Object.keys(plans).map((key) => (
+              <button key={key} type="button" className={`wallet-option ${plan === key ? "wallet-option-selected" : ""}`} onClick={() => setPlan(key)}>{plans[key].price}</button>
+            ))}
+          </div>
+        </>
+      ) : null}
+
+      {instruction ? (
+        <section className="user-instruction wallet-instruction glass-panel">
+          <div className="user-instruction-head">
+            <p className="eyebrow"><span /> USDX / CURRENT INSTRUCTION</p>
+            <span className="user-cycle">{`CYCLE ${cycle} · ${instruction.label}`}</span>
+          </div>
+          <h2>{instruction.title}</h2>
+          <p>{instruction.detail}</p>
+          <Link href={`/guide/${plan}`} className="text-cta">Open full plan guide <span>↗</span></Link>
+        </section>
+      ) : null}
     </section>
   );
 }
@@ -235,14 +196,29 @@ export default function LandingExperience() {
   const pageRef = useRef(null);
   const initialized = useRef(false);
   const cleanupRef = useRef(() => {});
+  const [gate, setGate] = useState("checking");
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const loginRedirectRef = useRef(false);
+  const verifiedEmailRef = useRef("");
+
+  const registeredEmail = useSyncExternalStore(
+    subscribeToStorage,
+    getRegisteredEmailSnapshot,
+    getEmptyServerSnapshot
+  );
+  const registeredName = useSyncExternalStore(
+    subscribeToStorage,
+    getRegisteredNameSnapshot,
+    getEmptyServerSnapshot
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("login") === "1") {
+      loginRedirectRef.current = true;
       requestAnimationFrame(() => {
         setLoginError(params.get("message") || "");
         setLoginEmail("");
@@ -254,6 +230,49 @@ export default function LandingExperience() {
       window.history.replaceState({}, "", url.toString());
     }
   }, []);
+
+  useEffect(() => {
+    if (registeredEmail) {
+      if (verifiedEmailRef.current === registeredEmail && gate === "ready") return;
+      let cancelled = false;
+      setGate("checking");
+      const verify = async () => {
+        try {
+          const response = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: registeredEmail }),
+          });
+          if (cancelled) return;
+          if (response.status === 404) {
+            localStorage.removeItem("usdx_registered_email");
+            localStorage.removeItem("usdx_registered_name");
+            router.replace(`/register?message=${encodeURIComponent("REGISTER FIRST TO ACCESS THE LANDING EXPERIENCE")}`);
+            return;
+          }
+          const data = await response.json().catch(() => ({}));
+          if (data && data.name) {
+            localStorage.setItem("usdx_registered_name", data.name);
+          }
+          verifiedEmailRef.current = registeredEmail;
+          setGate("ready");
+        } catch (err) {
+          if (!cancelled) {
+            verifiedEmailRef.current = registeredEmail;
+            setGate("ready");
+          }
+        }
+      };
+      verify();
+      return () => { cancelled = true; };
+    }
+
+    if (loginRedirectRef.current) {
+      setGate("ready");
+      return;
+    }
+    router.replace("/register");
+  }, [registeredEmail, router, gate]);
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
@@ -269,7 +288,11 @@ export default function LandingExperience() {
       const data = await response.json().catch(() => ({}));
       if (response.ok && data.exists) {
         localStorage.setItem("usdx_registered_email", loginEmail.trim());
-        router.push(`/user?email=${encodeURIComponent(loginEmail.trim())}`);
+        if (data.name) localStorage.setItem("usdx_registered_name", data.name);
+        verifiedEmailRef.current = loginEmail.trim();
+        setGate("ready");
+        setLoginOpen(false);
+        router.push("/");
       } else if (response.status === 404) {
         router.push("/register");
       } else {
@@ -281,11 +304,6 @@ export default function LandingExperience() {
       setLoginLoading(false);
     }
   };
-  const registeredEmail = useSyncExternalStore(
-    subscribeToRegisteredEmail,
-    getRegisteredEmailSnapshot,
-    getRegisteredEmailServerSnapshot
-  );
 
   const initialise = useCallback(() => {
     if (
@@ -378,6 +396,14 @@ export default function LandingExperience() {
 
   useEffect(() => () => cleanupRef.current(), []);
 
+  if (gate !== "ready") {
+    return (
+      <main className="usdx-shell" style={{ alignItems: "center", display: "flex", justifyContent: "center", minHeight: "100vh" }}>
+        <p className="eyebrow"><span /> USDX / CHECKING ACCESS</p>
+      </main>
+    );
+  }
+
   return (
     <main className="usdx-shell" ref={pageRef}>
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" strategy="afterInteractive" onReady={initialise} />
@@ -422,7 +448,12 @@ export default function LandingExperience() {
         </div>
       </section>
 
-      {registeredEmail ? <StakeSection email={registeredEmail} /> : null}
+      {registeredEmail ? (
+        <>
+          <WelcomeBox name={registeredName || "there"} />
+          <WalletSection email={registeredEmail} />
+        </>
+      ) : null}
 
       <section id="capabilities" className="capabilities scroll-reveal">
         <div className="section-heading"><p>CORE CAPABILITIES</p><h2>One operating system.<br /><span>Complete visibility.</span></h2></div>
@@ -457,7 +488,7 @@ export default function LandingExperience() {
             <button type="button" className="login-close" onClick={() => setLoginOpen(false)} aria-label="Close">✕</button>
             <p className="eyebrow login-eyebrow"><span /> USDX / LOGIN</p>
             <h2 className="login-title">Welcome <em>back.</em></h2>
-            <p className="login-note">Enter the email you registered with to view your compounding dashboard.</p>
+            <p className="login-note">Enter the email you registered with to access the landing experience.</p>
             <form className="login-form" onSubmit={handleLoginSubmit}>
               <label className="login-field">
                 <span>Email address</span>
