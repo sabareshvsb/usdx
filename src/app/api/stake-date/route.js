@@ -18,8 +18,9 @@ const FALLBACK_RPC = process.env.BASE_RPC_URL_FALLBACK || "https://mainnet.base.
 const deploymentBlockCache = new Map();
 
 function detectPlan(value) {
+  const doubled = value * 2;
   for (const [amount, key] of Object.entries(PLAN_VALUES)) {
-    if (Math.abs(value - Number(amount)) < 0.5) return key;
+    if (Math.abs(doubled - Number(amount)) < 0.5) return key;
   }
   return null;
 }
