@@ -238,6 +238,55 @@ function WalletSection({ email }) {
   );
 }
 
+function NotificationSection({ email }) {
+  const [enabled, setEnabled] = useState(null);
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState("");
+
+  const handleChoice = async (choice) => {
+    if (status === "loading") return;
+    setEnabled(choice);
+    setError("");
+    setStatus("loading");
+    try {
+      const response = await fetch("/api/notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, enabled: choice }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not update your notification setting.");
+      setStatus("done");
+    } catch (err) {
+      setError(err.message);
+      setStatus("idle");
+    }
+  };
+
+  return (
+    <section className="notification-section glass-panel scroll-reveal">
+      <p className="eyebrow notification-eyebrow"><span /> USDX / MONTHLY NOTIFICATIONS</p>
+      <h2 className="notification-title">Monthly email updates</h2>
+      <p className="notification-question">Get a monthly email with updates related to your compounding activity, starting from next month.</p>
+      <div className="notification-options" role="group" aria-label="Monthly notifications">
+        <button type="button" className={`notification-option${enabled === true ? " is-active" : ""}`} onClick={() => handleChoice(true)} disabled={status === "loading"}>
+          {status === "loading" && enabled === true ? "Enabling…" : "Yes, notify me"}
+        </button>
+        <button type="button" className={`notification-option${enabled === false ? " is-active" : ""}`} onClick={() => handleChoice(false)} disabled={status === "loading"}>
+          {status === "loading" && enabled === false ? "Disabling…" : "No, thanks"}
+        </button>
+      </div>
+      {status === "done" && enabled === true ? (
+        <p className="notification-note is-success" role="status">Monthly notifications are enabled. A confirmation email is on its way to {email}.</p>
+      ) : null}
+      {status === "done" && enabled === false ? (
+        <p className="notification-note" role="status">Monthly notifications are disabled.</p>
+      ) : null}
+      {error ? <p className="notification-error" role="alert">{error}</p> : null}
+    </section>
+  );
+}
+
 export default function LandingExperience() {
   const router = useRouter();
   const canvasRef = useRef(null);
@@ -500,6 +549,7 @@ export default function LandingExperience() {
         <>
           <WelcomeBox name={registeredName || "there"} />
           <WalletSection email={registeredEmail} />
+          <NotificationSection email={registeredEmail} />
         </>
       ) : null}
 
