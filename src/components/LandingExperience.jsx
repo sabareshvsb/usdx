@@ -107,7 +107,7 @@ function WalletSection({ email }) {
         body: JSON.stringify({ email, walletAddress: address }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Could not find your stake on BaseScan.");
+      if (!response.ok) throw new Error(data.error || "Could not find your stake.");
       setStake(data);
       setPlan(data.plan || "");
       setStatus("done");
@@ -139,7 +139,7 @@ function WalletSection({ email }) {
     <section className="wallet-section glass-panel scroll-reveal">
       <p className="eyebrow wallet-eyebrow"><span /> USDX / STAKE STATUS</p>
       <h2 className="wallet-title">Enter your wallet address</h2>
-      <p className="wallet-question">Connect your position. Enter the wallet address you staked with so we can pull your stake date and time from BaseScan.</p>
+      <p className="wallet-question">Connect your position. Enter the wallet address you staked with so we can pull your stake date and time from the blockchain.</p>
       <form className="wallet-form" onSubmit={handleLookup}>
         <input
           className="wallet-input"
