@@ -97,7 +97,7 @@ export async function POST(request) {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/usdxcompounding`, {
         method: "POST",
         headers: supabaseHeaders(),
-        body: JSON.stringify({ email, name, "date of stake": today }),
+        body: JSON.stringify({ email, name, "date of stake": today, contract_address: "" }),
       });
 
       if (!response.ok) {
