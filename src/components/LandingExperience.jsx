@@ -163,14 +163,8 @@ function WalletSection({ email }) {
           <div className="wallet-result">
             <span className="wallet-result-label">STAKED ON</span>
             <div className="wallet-result-date">{stakeLabel}</div>
+            {plan ? <span className="wallet-result-plan">PLAN · {plans[plan]?.price}</span> : null}
             <a className="wallet-result-tx" href={`https://basescan.org/tx/${stake.txHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan ↗</a>
-          </div>
-
-          <p className="wallet-plan-heading">SELECT YOUR PLAN</p>
-          <div className="wallet-options">
-            {Object.keys(plans).map((key) => (
-              <button key={key} type="button" className={`wallet-option ${plan === key ? "wallet-option-selected" : ""}`} onClick={() => setPlan(key)}>{plans[key].price}</button>
-            ))}
           </div>
         </>
       ) : null}
