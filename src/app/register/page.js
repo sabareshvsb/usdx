@@ -83,6 +83,9 @@ export default function RegisterPage() {
           <button type="submit" className="primary-cta register-submit" disabled={submitting}>
             {submitting ? "Registering…" : (<><span className="register-submit-label">Register Now</span><span aria-hidden="true">→</span></>)}
           </button>
+          <button type="button" className="register-login" onClick={() => router.replace("/?login=1")}>
+            Already registered? <span>Log in →</span>
+          </button>
         </form>
       </section>
 

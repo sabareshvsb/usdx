@@ -6,7 +6,7 @@ import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { plans } from "../data/plans";
-import { findInstruction, cycleForDate } from "../lib/planGuide";
+import { findInstruction, cycleForDate, parseMonthRange } from "../lib/planGuide";
 
 const subscribeToStorage = (callback) => {
   window.addEventListener("storage", callback);
@@ -16,6 +16,16 @@ const subscribeToStorage = (callback) => {
 const getRegisteredEmailSnapshot = () => window.localStorage.getItem("usdx_registered_email") || "";
 const getRegisteredNameSnapshot = () => window.localStorage.getItem("usdx_registered_name") || "";
 const getEmptyServerSnapshot = () => "";
+
+function addMonths(dateStr, months) {
+  const date = new Date(`${dateStr}T00:00:00`);
+  date.setMonth(date.getMonth() + months);
+  return date;
+}
+
+function formatMonthYear(date) {
+  return date.toLocaleString("en-GB", { month: "short", year: "numeric" });
+}
 
 const features = [
   ["01", "Clear cadence", "A visual monthly path that turns a complex process into clear next actions."],
@@ -178,6 +188,44 @@ function WalletSection({ email }) {
           <h2>{instruction.title}</h2>
           <p>{instruction.detail}</p>
           <Link href={`/guide/${plan}`} className="text-cta">Open full plan guide <span>↗</span></Link>
+        </section>
+      ) : null}
+
+      {stake && plan && plans[plan] ? (
+        <section className="plan-timeline glass-panel">
+          <div className="plan-timeline-head">
+            <p className="eyebrow"><span /> USDX / COMPOUNDING PLAN</p>
+            <span className="plan-timeline-plan">{plans[plan].price}</span>
+          </div>
+          <h3 className="plan-timeline-title">Your compounding roadmap from {formatMonthYear(new Date(`${stake.stakeDate}T00:00:00`))}</h3>
+          <div className="plan-timeline-list">
+            {plans[plan].steps.map(([monthLabel, title, detail], index) => {
+              const range = parseMonthRange(monthLabel);
+              const isCurrent = range ? cycle >= range[0] && cycle <= range[1] : false;
+              let dateLabel = "";
+              if (range) {
+                const startDate = addMonths(stake.stakeDate, range[0] - 1);
+                const endDate = addMonths(stake.stakeDate, range[1] - 1);
+                dateLabel =
+                  range[0] === range[1]
+                    ? formatMonthYear(startDate)
+                    : `${formatMonthYear(startDate)} – ${formatMonthYear(endDate)}`;
+              }
+              return (
+                <article key={`${monthLabel}-${index}`} className={`plan-timeline-item${isCurrent ? " is-current" : ""}`}>
+                  <div className="plan-timeline-month">
+                    <span>{monthLabel}</span>
+                    {dateLabel ? <small>{dateLabel}</small> : null}
+                  </div>
+                  <div className="plan-timeline-body">
+                    <h4>{title}</h4>
+                    <p>{detail}</p>
+                  </div>
+                  {isCurrent ? <span className="plan-timeline-now">NOW</span> : null}
+                </article>
+              );
+            })}
+          </div>
         </section>
       ) : null}
     </section>
