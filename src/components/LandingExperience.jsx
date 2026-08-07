@@ -5,7 +5,7 @@ import Image from "next/image";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { plans } from "../data/plans";
+import { plans, defaultPlan } from "../data/plans";
 import { findInstruction, cycleForDate, parseMonthRange } from "../lib/planGuide";
 
 const subscribeToStorage = (callback) => {
@@ -129,8 +129,10 @@ function WalletSection({ email }) {
 
   let instruction = null;
   let cycle = 1;
-  if (stake && plan && plans[plan]) {
-    const planData = plans[plan];
+  let planData = null;
+  if (stake) {
+    const planKey = plan && plans[plan] ? plan : "default";
+    planData = plans[planKey] || defaultPlan;
     cycle = Math.min(cycleForDate(stake.stakeDate).cycle, planData.horizon);
     instruction = findInstruction(planData, cycle);
   }
@@ -173,7 +175,7 @@ function WalletSection({ email }) {
           <div className="wallet-result">
             <span className="wallet-result-label">STAKED ON</span>
             <div className="wallet-result-date">{stakeLabel}</div>
-            {plan ? <span className="wallet-result-plan">PLAN · {plans[plan]?.price}</span> : null}
+            {planData ? <span className="wallet-result-plan">PLAN · {planData.price || `$${Math.round(stake.value)}`}</span> : null}
             <a className="wallet-result-tx" href={`https://basescan.org/tx/${stake.txHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan ↗</a>
           </div>
         </>
@@ -187,19 +189,23 @@ function WalletSection({ email }) {
           </div>
           <h2>{instruction.title}</h2>
           <p>{instruction.detail}</p>
-          <Link href={`/guide/${plan}`} className="text-cta">Open full plan guide <span>↗</span></Link>
+          {planData.slug === "default" ? (
+            <Link href="/guide" className="text-cta">Open plan guides <span>↗</span></Link>
+          ) : (
+            <Link href={`/guide/${plan}`} className="text-cta">Open full plan guide <span>↗</span></Link>
+          )}
         </section>
       ) : null}
 
-      {stake && plan && plans[plan] ? (
+      {stake && planData ? (
         <section className="plan-timeline glass-panel">
           <div className="plan-timeline-head">
             <p className="eyebrow"><span /> USDX / COMPOUNDING PLAN</p>
-            <span className="plan-timeline-plan">{plans[plan].price}</span>
+            <span className="plan-timeline-plan">{planData.price || `$${Math.round(stake.value)}`}</span>
           </div>
           <h3 className="plan-timeline-title">Your compounding roadmap from {formatMonthYear(new Date(`${stake.stakeDate}T00:00:00`))}</h3>
           <div className="plan-timeline-list">
-            {plans[plan].steps.map(([monthLabel, title, detail], index) => {
+            {planData.steps.map(([monthLabel, title, detail], index) => {
               const range = parseMonthRange(monthLabel);
               const isCurrent = range ? cycle >= range[0] && cycle <= range[1] : false;
               let dateLabel = "";

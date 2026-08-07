@@ -48,6 +48,25 @@ const fiveThousandActions = [
 ];
 const fiveThousand = fiveThousandActions.map((action, index) => [`Month ${index + 1}`, index === 0 ? "Initial deployment" : "Level expansion", action]);
 
+const defaultSteps = [
+  ["Month 1", "Confirm your stake", "Your USDX stake is confirmed. Collect the monthly ROI and keep the re-stake balance in your account. Do not create new IDs this month."],
+  ["Months 2–12", "Build the balance", "Collect the monthly ROI each 30-day cycle and add it to the re-stake balance. No new IDs yet."],
+  ["Months 13–24", "Continue compounding", "Follow the same process each month and allow the re-stake balance to accumulate."],
+  ["Months 25–36", "Accelerating phase", "Continue the monthly ROI and re-stake cycle as the balance grows."],
+  ["Months 37–48", "Higher re-staking frequency", "Keep collecting monthly ROI and building the re-stake balance."],
+  ["Months 49–60", "Mature compounding", "Continue the standard monthly ROI and re-stake cycle through the full horizon."],
+];
+
+export const defaultPlan = {
+  slug: "default",
+  price: "",
+  name: "Standard Compounding Plan",
+  horizon: 60,
+  summary: "A general compounding roadmap that applies to any USDX stake.",
+  steps: defaultSteps,
+  graph: defaultSteps.map((_, index) => Math.max(1, Math.ceil((index + 1) / 3))),
+};
+
 export const plans = {
   500: { slug: "500", price: "$500", name: "Starter Compounding Plan", horizon: 60, summary: "A deliberate Main-ID roadmap that expands into 45 IDs over 60 months.", download: "/downloads/usdx-500-compounding.xlsx", downloadName: "USDX 500 Compounding Plan.xlsx", steps: fiveHundred, graph: [1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,5,5,6,6,6,7,8,9,10,10,10,12,12,14,16,17,17,19,22,25,26,26,30,34,38,42,45] },
   1000: { slug: "1000", price: "$1,000", name: "Advanced Compounding Plan", horizon: 60, summary: "A $1,000 Main-ID system with ROI, affiliate volume, and threshold-based ID creation.", download: "/downloads/usdx-1000-compounding.xlsx", downloadName: "USDX 1000 Compounding Plan.xlsx", steps: oneThousand, graph: oneThousandSchedule.map((month, index) => ({ month, ids: index + 2 })) },
