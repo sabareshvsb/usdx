@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { plans, defaultPlan } from "../data/plans";
 import { findInstruction, cycleForDate, parseMonthRange } from "../lib/planGuide";
-import TokenChart from "./TokenChart";
+
 
 const subscribeToStorage = (callback) => {
   window.addEventListener("storage", callback);
@@ -518,10 +518,6 @@ export default function LandingExperience() {
       </nav>
 
       <LiveTicker />
-
-      <section className="token-chart-section scroll-reveal">
-        <TokenChart />
-      </section>
 
       <div className="collab-frame reveal-hero">
         <Image src="/images/collabration.jpeg" alt="Youth Wing and Vision Builders collaboration" width={220} height={220} className="collab-photo" />
