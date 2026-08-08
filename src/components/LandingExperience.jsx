@@ -234,6 +234,8 @@ function WalletSection({ email }) {
           </div>
         </section>
       ) : null}
+
+      {status === "done" && stake ? <NotificationSection email={email} /> : null}
     </section>
   );
 }
@@ -549,7 +551,6 @@ export default function LandingExperience() {
         <>
           <WelcomeBox name={registeredName || "there"} />
           <WalletSection email={registeredEmail} />
-          <NotificationSection email={registeredEmail} />
         </>
       ) : null}
 
