@@ -160,12 +160,12 @@ export async function POST(request) {
   if (!parsed.ok) return Response.json({ error: parsed.error }, { status: parsed.status });
 
   const email = sanitizeEmail(parsed.data.email);
-  const walletAddress = sanitizeWallet(parsed.data.walletAddress);
+  const walletAddress = parsed.data.walletAddress ? sanitizeWallet(parsed.data.walletAddress) : null;
 
   if (!email) {
     return Response.json({ error: "Please provide a valid email address." }, { status: 400 });
   }
-  if (!walletAddress) {
+  if (parsed.data.walletAddress && !walletAddress) {
     return Response.json({ error: "Please provide a valid wallet address (0x + 40 hex characters)." }, { status: 400 });
   }
 
@@ -176,7 +176,7 @@ export async function POST(request) {
   let user;
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/usdxcompounding?email=eq.${encodeURIComponent(email)}&select=${encodeURIComponent('email,name,"date of stake",stake_amount')}`,
+      `${SUPABASE_URL}/rest/v1/usdxcompounding?email=eq.${encodeURIComponent(email)}&select=${encodeURIComponent('email,name,"date of stake",stake_amount,wallet_address,wallet_address2')}`,
       { headers: supabaseHeaders() }
     );
     if (!response.ok) {
@@ -191,6 +191,27 @@ export async function POST(request) {
 
   if (!user) {
     return Response.json({ error: "No account found with this email. Please register first." }, { status: 404 });
+  }
+
+  const storedWallet = user.wallet_address || null;
+  const storedDate = user["date of stake"] || null;
+  const storedPlan = user.stake_amount != null ? String(user.stake_amount) : null;
+
+  if (!walletAddress) {
+    if (storedWallet && storedDate) {
+      return Response.json({
+        success: true,
+        fromStorage: true,
+        stakeDate: storedDate,
+        timestamp: Math.floor(Date.parse(`${storedDate}T00:00:00Z`) / 1000),
+        value: storedPlan ? Number(storedPlan) / 2 : 0,
+        plan: storedPlan,
+        txHash: null,
+        walletAddress: storedWallet,
+        walletAddress2: user.wallet_address2 || null,
+      });
+    }
+    return Response.json({ success: false, needsWallet: true });
   }
 
   const contract = process.env.USDX_CONTRACT_ADDRESS || DEFAULT_USDX_CONTRACT;
@@ -273,5 +294,5 @@ export async function POST(request) {
     // saving must never block returning the stake date to the user
   }
 
-  return Response.json({ success: true, stakeDate, timestamp, value: stakeTx.value, plan, txHash: stakeTx.txHash });
+  return Response.json({ success: true, stakeDate, timestamp, value: stakeTx.value, plan, txHash: stakeTx.txHash, walletAddress, walletAddress2: user.wallet_address2 || null });
 }

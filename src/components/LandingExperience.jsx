@@ -102,6 +102,35 @@ function WalletSection({ email }) {
   const [plan, setPlan] = useState("");
   const [error, setError] = useState("");
 
+  const [addingWallet2, setAddingWallet2] = useState(false);
+  const [wallet2Address, setWallet2Address] = useState("");
+  const [wallet2Status, setWallet2Status] = useState("idle");
+  const [wallet2Error, setWallet2Error] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadStored = async () => {
+      try {
+        const response = await fetch("/api/stake-date", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        if (data.success && data.stakeDate) {
+          setStake(data);
+          setPlan(data.plan || "");
+          setStatus("done");
+        }
+      } catch {
+        // no stored wallet yet - the input form below handles first-time setup
+      }
+    };
+    loadStored();
+    return () => { cancelled = true; };
+  }, [email]);
+
   const handleLookup = async (event) => {
     event.preventDefault();
     const address = walletAddress.trim();
@@ -128,6 +157,33 @@ function WalletSection({ email }) {
     }
   };
 
+  const handleAddWallet2 = async (event) => {
+    event.preventDefault();
+    const address = wallet2Address.trim();
+    if (!address) {
+      setWallet2Error("Please enter a wallet address.");
+      return;
+    }
+    setWallet2Error("");
+    setWallet2Status("loading");
+    try {
+      const response = await fetch("/api/wallet-address2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, walletAddress: address }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not save the wallet address.");
+      setStake((prev) => (prev ? { ...prev, walletAddress2: address } : prev));
+      setWallet2Address("");
+      setAddingWallet2(false);
+    } catch (err) {
+      setWallet2Error(err.message);
+    } finally {
+      setWallet2Status("idle");
+    }
+  };
+
   let instruction = null;
   let cycle = 1;
   let planData = null;
@@ -151,25 +207,30 @@ function WalletSection({ email }) {
   return (
     <section className="wallet-section glass-panel scroll-reveal">
       <p className="eyebrow wallet-eyebrow"><span /> USDX / STAKE STATUS</p>
-      <h2 className="wallet-title">Enter your wallet address</h2>
-      <p className="wallet-question">Connect your position. Enter the wallet address you staked with so we can pull your stake date and time from the blockchain.</p>
-      <form className="wallet-form" onSubmit={handleLookup}>
-        <input
-          className="wallet-input"
-          type="text"
-          autoComplete="off"
-          spellCheck="false"
-          placeholder="0x…"
-          value={walletAddress}
-          onChange={(event) => setWalletAddress(event.target.value)}
-          disabled={status === "loading"}
-        />
-        <button type="submit" className="primary-cta wallet-submit" disabled={status === "loading"}>
-          {status === "loading" ? "Finding your stake…" : (<><span className="register-submit-label">Find my stake</span><span aria-hidden="true">→</span></>)}
-        </button>
-      </form>
+      <h2 className="wallet-title">{status === "done" && stake ? "Your stake position" : "Enter your wallet address"}</h2>
 
-      {error ? <p className="wallet-error" role="alert">{error}</p> : null}
+      {!(status === "done" && stake) ? (
+        <>
+          <p className="wallet-question">Connect your position. Enter the wallet address you staked with so we can pull your stake date and time from the blockchain.</p>
+          <form className="wallet-form" onSubmit={handleLookup}>
+            <input
+              className="wallet-input"
+              type="text"
+              autoComplete="off"
+              spellCheck="false"
+              placeholder="0x…"
+              value={walletAddress}
+              onChange={(event) => setWalletAddress(event.target.value)}
+              disabled={status === "loading"}
+            />
+            <button type="submit" className="primary-cta wallet-submit" disabled={status === "loading"}>
+              {status === "loading" ? "Finding your stake…" : (<><span className="register-submit-label">Find my stake</span><span aria-hidden="true">→</span></>)}
+            </button>
+          </form>
+
+          {error ? <p className="wallet-error" role="alert">{error}</p> : null}
+        </>
+      ) : null}
 
       {status === "done" && stake ? (
         <>
@@ -177,7 +238,36 @@ function WalletSection({ email }) {
             <span className="wallet-result-label">STAKED ON</span>
             <div className="wallet-result-date">{stakeLabel}</div>
             {planData ? <span className="wallet-result-plan">PLAN · {planData.price || `$${Math.round(stake.value)}`}</span> : null}
-            <a className="wallet-result-tx" href={`https://basescan.org/tx/${stake.txHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan ↗</a>
+            {stake.walletAddress ? <span className="wallet-result-address">{stake.walletAddress}</span> : null}
+            {stake.txHash ? <a className="wallet-result-tx" href={`https://basescan.org/tx/${stake.txHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan ↗</a> : null}
+          </div>
+
+          <div className="wallet2-box">
+            {stake.walletAddress2 ? (
+              <p className="wallet2-stored"><span>ADDITIONAL WALLET</span>{stake.walletAddress2}</p>
+            ) : addingWallet2 ? (
+              <form className="wallet2-form" onSubmit={handleAddWallet2}>
+                <input
+                  className="wallet-input wallet2-input"
+                  type="text"
+                  autoComplete="off"
+                  spellCheck="false"
+                  placeholder="0x… (second wallet)"
+                  value={wallet2Address}
+                  onChange={(event) => setWallet2Address(event.target.value)}
+                  disabled={wallet2Status === "loading"}
+                />
+                <div className="wallet2-actions">
+                  <button type="submit" className="primary-cta wallet-submit" disabled={wallet2Status === "loading"}>
+                    {wallet2Status === "loading" ? "Saving…" : (<><span className="register-submit-label">Save wallet</span><span aria-hidden="true">→</span></>)}
+                  </button>
+                  <button type="button" className="wallet2-cancel" onClick={() => { setAddingWallet2(false); setWallet2Error(""); }}>Cancel</button>
+                </div>
+                {wallet2Error ? <p className="wallet-error" role="alert">{wallet2Error}</p> : null}
+              </form>
+            ) : (
+              <button type="button" className="wallet2-toggle" onClick={() => setAddingWallet2(true)}>+ Add wallet address</button>
+            )}
           </div>
         </>
       ) : null}
