@@ -609,10 +609,6 @@ export default function LandingExperience() {
 
       <LiveTicker />
 
-      <div className="collab-frame reveal-hero">
-        <Image src="/images/collabration.jpeg" alt="Youth Wing and Vision Builders collaboration" width={220} height={220} className="collab-photo" />
-      </div>
-
       <section className="hero-section">
         <div className="hero-copy">
           <p className="eyebrow reveal-hero"><span /> USDX / COMPOUNDING INTELLIGENCE</p>
