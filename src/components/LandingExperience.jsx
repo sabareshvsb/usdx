@@ -660,18 +660,6 @@ export default function LandingExperience() {
 
       <section className="final-cta scroll-reveal"><div className="final-glow" /><p>THE NEXT MOVE IS YOURS</p><h2>Make the long view<br /><em>feel within reach.</em></h2><Link href="/guide" className="primary-cta">Start your journey <span>→</span></Link></section>
 
-      <section className="chart-section scroll-reveal">
-        <div className="chart-grid">
-          <figure className="chart-figure glass-panel">
-            <figcaption className="chart-label">COMPOUNDING CHART PREPARED BY</figcaption>
-            <Image src="/images/compounding-chart-1.jpeg" alt="USDX compounding chart one" width={460} height={320} className="chart-img" />
-          </figure>
-          <figure className="chart-figure chart-flip glass-panel">
-            <Image src="/images/compounding-chart-2.jpeg" alt="USDX compounding chart two" width={460} height={320} className="chart-img" />
-          </figure>
-        </div>
-      </section>
-
       {loginOpen ? (
         <div className="login-modal" role="dialog" aria-modal="true" aria-label="Login">
           <div className="login-modal-card glass-panel">
@@ -693,9 +681,7 @@ export default function LandingExperience() {
         </div>
       ) : null}
       <footer className="landing-footer flex-wrap items-start gap-8">
-        <div className="flex items-center gap-3"><Image src="/images/youth-wing.jpeg" alt="USDX Smart Youth Wing" width={48} height={48} loading="eager" className="h-12 w-12 rounded-full border border-cyan-300/40 object-cover" /><div className="flex flex-col gap-1"><span>YOUTH WING</span><strong className="text-xs tracking-[.08em] text-white">SABARESH V S B</strong><a className="text-cyan-300 hover:text-white" href="tel:+919003788941">+91 90037 88941</a></div></div>
-        <div className="flex items-center gap-3"><Image src="/images/vision-builders.jpeg" alt="Vision Builders" width={48} height={48} loading="eager" className="h-12 w-12 rounded-full border border-cyan-300/40 object-cover" /><div className="flex flex-col gap-1"><span>VISION BUILDERS LEADER</span><strong className="text-xs tracking-[.08em] text-white">ARUL SABARISH</strong><a className="text-cyan-300 hover:text-white" href="tel:+917418485677">+91 74184 85677</a></div></div>
-        <div className="ml-auto flex flex-col gap-1 text-right"><span>© 2026 USDX</span><span>COMPOUNDING INTELLIGENCE</span><span className="mt-2 text-[8px] tracking-[.16em] text-white/35">WEB BUILT BY SABARESH V S B</span></div>
+        <div className="ml-auto flex flex-col gap-1 text-right"><span>© 2026 USDX</span><span>COMPOUNDING INTELLIGENCE</span><span className="mt-2 text-[8px] tracking-[.16em] text-white/35">FOR MORE DETAILS VISIT usdx.live</span></div>
       </footer>
     </main>
   );
