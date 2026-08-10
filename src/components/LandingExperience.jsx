@@ -106,6 +106,7 @@ function WalletSection({ email }) {
   const [wallet2Address, setWallet2Address] = useState("");
   const [wallet2Status, setWallet2Status] = useState("idle");
   const [wallet2Error, setWallet2Error] = useState("");
+  const [stake2, setStake2] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,6 +123,16 @@ function WalletSection({ email }) {
           setStake(data);
           setPlan(data.plan || "");
           setStatus("done");
+          if (data.stakeDate2 && data.stakeAmount2) {
+            setStake2({
+              stakeDate: data.stakeDate2,
+              plan: String(data.stakeAmount2),
+              value: data.stakeAmount2 / 2,
+              timestamp: data.wallet2Timestamp || 0,
+              txHash: null,
+              walletAddress2: data.walletAddress2,
+            });
+          }
         }
       } catch {
         // no stored wallet yet - the input form below handles first-time setup
@@ -151,6 +162,18 @@ function WalletSection({ email }) {
       setStake(data);
       setPlan(data.plan || "");
       setStatus("done");
+      if (data.stakeDate2 && data.stakeAmount2) {
+        setStake2({
+          stakeDate: data.stakeDate2,
+          plan: String(data.stakeAmount2),
+          value: data.stakeAmount2 / 2,
+          timestamp: data.wallet2Timestamp || 0,
+          txHash: null,
+          walletAddress2: data.walletAddress2,
+        });
+      } else {
+        setStake2(null);
+      }
     } catch (err) {
       setError(err.message);
       setStatus("idle");
@@ -177,6 +200,22 @@ function WalletSection({ email }) {
       setStake((prev) => (prev ? { ...prev, walletAddress2: address } : prev));
       setWallet2Address("");
       setAddingWallet2(false);
+      if (data.stakeDate2 && data.stakeAmount2) {
+        setStake2({
+          stakeDate: data.stakeDate2,
+          plan: String(data.stakeAmount2),
+          value: data.value,
+          timestamp: data.timestamp || 0,
+          txHash: data.txHash,
+          walletAddress2: address,
+        });
+      } else {
+        setStake2(null);
+      }
+      if (data.lookupError) {
+        setWallet2Error(`Wallet saved, but ${data.lookupError}`);
+        return;
+      }
     } catch (err) {
       setWallet2Error(err.message);
     } finally {
@@ -194,6 +233,16 @@ function WalletSection({ email }) {
     instruction = findInstruction(planData, cycle);
   }
 
+  let instruction2 = null;
+  let cycle2 = 1;
+  let planData2 = null;
+  if (stake2) {
+    const planKey2 = plans[stake2.plan] ? stake2.plan : "default";
+    planData2 = plans[planKey2] || defaultPlan;
+    cycle2 = Math.min(cycleForDate(stake2.stakeDate).cycle, planData2.horizon);
+    instruction2 = findInstruction(planData2, cycle2);
+  }
+
   const stakeLabel = stake
     ? new Date(stake.timestamp * 1000).toLocaleString("en-GB", {
         day: "numeric",
@@ -201,6 +250,14 @@ function WalletSection({ email }) {
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+      })
+    : "";
+
+  const wallet2Label = stake2
+    ? new Date(`${stake2.stakeDate}T00:00:00`).toLocaleString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
       })
     : "";
 
@@ -269,6 +326,34 @@ function WalletSection({ email }) {
               <button type="button" className="wallet2-toggle" onClick={() => setAddingWallet2(true)}>+ Add wallet address</button>
             )}
           </div>
+
+          {stake2 ? (
+            <>
+              <div className="wallet-result wallet2-result">
+                <span className="wallet-result-label">ADDITIONAL WALLET · STAKED ON</span>
+                <div className="wallet-result-date">{wallet2Label}</div>
+                {planData2 ? <span className="wallet-result-plan">PLAN · {planData2.price || `$${Math.round(stake2.value)}`}</span> : null}
+                {stake2.walletAddress2 ? <span className="wallet-result-address">{stake2.walletAddress2}</span> : null}
+                {stake2.txHash ? <a className="wallet-result-tx" href={`https://basescan.org/tx/${stake2.txHash}`} target="_blank" rel="noreferrer">View transaction on BaseScan ↗</a> : null}
+              </div>
+
+              {instruction2 ? (
+                <section className="user-instruction wallet-instruction glass-panel">
+                  <div className="user-instruction-head">
+                    <p className="eyebrow"><span /> USDX / ADDITIONAL WALLET INSTRUCTION</p>
+                    <span className="user-cycle">{`CYCLE ${cycle2} · ${instruction2.label}`}</span>
+                  </div>
+                  <h2>{instruction2.title}</h2>
+                  <p>{instruction2.detail}</p>
+                  {planData2.slug === "default" ? (
+                    <Link href="/guide" className="text-cta">Open plan guides <span>↗</span></Link>
+                  ) : (
+                    <Link href={`/guide/${stake2.plan}`} className="text-cta">Open full plan guide <span>↗</span></Link>
+                  )}
+                </section>
+              ) : null}
+            </>
+          ) : null}
         </>
       ) : null}
 
