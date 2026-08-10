@@ -36,7 +36,7 @@ export async function POST(request) {
   const updates = { wallet_address2: walletAddress };
   if (stake) {
     updates.stake_date2 = stake.stakeDate;
-    if (stake.plan) updates.stake_amount2 = Number(stake.plan);
+    updates.stake_amount2 = stake.plan ? Number(stake.plan) : Number(stake.tx.value);
   }
 
   try {

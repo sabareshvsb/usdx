@@ -88,8 +88,8 @@ export async function POST(request) {
   }
 
   const plan = stake.plan;
-  const updates = { "date of stake": stake.stakeDate, wallet_address: walletAddress };
-  if (plan) updates.stake_amount = Number(plan);
+  const stakeAmount = plan ? Number(plan) : Number(stake.tx.value);
+  const updates = { "date of stake": stake.stakeDate, wallet_address: walletAddress, stake_amount: stakeAmount };
 
   try {
     let response = await fetch(
