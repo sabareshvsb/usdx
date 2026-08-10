@@ -76,11 +76,9 @@ function parseLogs(logs) {
   return out;
 }
 
-function earliest(logLists) {
-  const all = [];
-  for (const list of logLists) all.push(...parseLogs(list));
-  all.sort((a, b) => a.block - b.block);
-  return all[0] || null;
+function selectStake(transfers) {
+  const sorted = [...transfers].sort((a, b) => a.block - b.block);
+  return sorted.find((t) => detectPlan(t.value)) || sorted[0] || null;
 }
 
 async function lookupAlchemy(walletAddress, contract) {
@@ -92,36 +90,24 @@ async function lookupAlchemy(walletAddress, contract) {
     order: "asc",
     maxCount: "0x3e8",
   };
-  const [toRes, fromRes] = await Promise.all([
-    rpcCall(ALCHEMY_URL, "alchemy_getAssetTransfers", [{ ...base, toAddress: walletAddress }]),
-    rpcCall(ALCHEMY_URL, "alchemy_getAssetTransfers", [{ ...base, fromAddress: walletAddress }]),
-  ]);
-  const all = [];
-  for (const res of [toRes, fromRes]) {
-    for (const transfer of res.transfers || []) {
-      all.push({
-        block: parseInt(transfer.blockNum, 16),
-        txHash: transfer.hash,
-        value: typeof transfer.value === "number" ? transfer.value : 0,
-        timestamp:
-          transfer.metadata && transfer.metadata.blockTimestamp
-            ? Date.parse(transfer.metadata.blockTimestamp) / 1000
-            : null,
-      });
-    }
-  }
-  all.sort((a, b) => a.block - b.block);
-  return all[0] || null;
+  const toRes = await rpcCall(ALCHEMY_URL, "alchemy_getAssetTransfers", [{ ...base, toAddress: walletAddress }]);
+  const transfers = (toRes.transfers || []).map((transfer) => ({
+    block: parseInt(transfer.blockNum, 16),
+    txHash: transfer.hash,
+    value: typeof transfer.value === "number" ? transfer.value : 0,
+    timestamp:
+      transfer.metadata && transfer.metadata.blockTimestamp
+        ? Date.parse(transfer.metadata.blockTimestamp) / 1000
+        : null,
+  }));
+  return selectStake(transfers);
 }
 
 async function lookupFullRange(walletAddress, contract) {
   const pad = padWallet(walletAddress);
   const base = { address: contract, fromBlock: "0x0", toBlock: "latest" };
-  const [toLogs, fromLogs] = await Promise.all([
-    rpcCall(PRIMARY_RPC, "eth_getLogs", [{ ...base, topics: [TRANSFER_TOPIC, null, pad] }]),
-    rpcCall(PRIMARY_RPC, "eth_getLogs", [{ ...base, topics: [TRANSFER_TOPIC, pad, null] }]),
-  ]);
-  return earliest([toLogs, fromLogs]);
+  const toLogs = await rpcCall(PRIMARY_RPC, "eth_getLogs", [{ ...base, topics: [TRANSFER_TOPIC, null, pad] }]);
+  return selectStake(parseLogs(toLogs));
 }
 
 async function lookupWindowScan(walletAddress, contract) {
@@ -134,11 +120,8 @@ async function lookupWindowScan(walletAddress, contract) {
     if (Date.now() > deadline) throw new Error("Lookup timed out. Please try again.");
     const e = Math.min(s + 9999, latest);
     const range = { address: contract, fromBlock: "0x" + s.toString(16), toBlock: "0x" + e.toString(16) };
-    const [toLogs, fromLogs] = await Promise.all([
-      rpcCall(FALLBACK_RPC, "eth_getLogs", [{ ...range, topics: [TRANSFER_TOPIC, null, pad] }], 15000),
-      rpcCall(FALLBACK_RPC, "eth_getLogs", [{ ...range, topics: [TRANSFER_TOPIC, pad, null] }], 15000),
-    ]);
-    const found = earliest([toLogs, fromLogs]);
+    const toLogs = await rpcCall(FALLBACK_RPC, "eth_getLogs", [{ ...range, topics: [TRANSFER_TOPIC, null, pad] }], 15000);
+    const found = selectStake(parseLogs(toLogs));
     if (found) return found;
   }
   return null;
