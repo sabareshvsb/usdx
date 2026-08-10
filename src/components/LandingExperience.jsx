@@ -677,7 +677,7 @@ export default function LandingExperience() {
         </div>
       ) : null}
       <footer className="landing-footer flex-wrap items-start gap-8">
-        <div className="ml-auto flex flex-col gap-1 text-right"><span>© 2026 USDX</span><span>COMPOUNDING INTELLIGENCE</span><span className="mt-2 text-[8px] tracking-[.16em] text-white/35">FOR MORE DETAILS VISIT usdx.live</span></div>
+        <div className="ml-auto flex flex-col gap-1 text-right"><span>© 2026 USDX</span><span>COMPOUNDING INTELLIGENCE</span><span className="mt-2 text-[8px] tracking-[.16em] text-white/35">FOR MORE DETAILS VISIT usdx.live</span><span className="text-[8px] tracking-[.16em] text-white/35">FOR TECHNICAL SUPPORT CONTACT usdxcompounding@gmail.com</span></div>
       </footer>
     </main>
   );

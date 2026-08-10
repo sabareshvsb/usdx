@@ -55,7 +55,7 @@ const FAQ_RULES = [
   {
     match: ["contact", "email", "phone", "help", "support", "call", "reach"],
     reply:
-      "You can reach us at sabareshvsb1@gmail.com or call +91 90037 88941. We are happy to help with any questions or technical issues.",
+      "You can reach us at usdxcompounding@gmail.com or call +91 90037 88941. We are happy to help with any questions or technical issues.",
   },
   {
     match: ["token", "price", "usdxsmart", "value", "live"],

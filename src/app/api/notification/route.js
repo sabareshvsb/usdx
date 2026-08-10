@@ -21,7 +21,7 @@ Starting from next month, you will receive a monthly notification with updates r
 
 If you have any questions or wish to report any technical issues, please feel free to contact us:
 
-Email: sabareshvsb1@gmail.com
+Email: usdxcompounding@gmail.com
 Phone: +91 9003788941
 
 Thank you for being a part of the USDX community.
@@ -47,7 +47,7 @@ function buildEnabledHtml() {
                 ${paragraph("We are pleased to inform you that monthly notifications for your <strong style='color:#ffffff;'>USDX Compounding Scheme</strong> have been successfully <strong style='color:#57f4ff;'>enabled</strong>.")}
                 ${paragraph("Starting from next month, you will receive a monthly notification with updates related to your compounding activity.")}
                 <h2 style="margin:26px 0 10px;font-size:13px;letter-spacing:.16em;color:#57f4ff;">CONTACT US</h2>
-                ${paragraph("If you have any questions or wish to report any technical issues, please feel free to contact us:<br/>Email: <a href='mailto:sabareshvsb1@gmail.com' style='color:#57f4ff;'>sabareshvsb1@gmail.com</a><br/>Phone: <a href='tel:+919003788941' style='color:#57f4ff;'>+91 9003788941</a>")}
+                ${paragraph("If you have any questions or wish to report any technical issues, please feel free to contact us:<br/>Email: <a href='mailto:usdxcompounding@gmail.com' style='color:#57f4ff;'>usdxcompounding@gmail.com</a><br/>Phone: <a href='tel:+919003788941' style='color:#57f4ff;'>+91 9003788941</a>")}
                 ${paragraph("Thank you for being a part of the USDX community.")}
                 <p style="margin:26px 0 0;font-size:15px;line-height:1.75;color:#d7dbe8;">Regards,<br/><strong style="color:#ffffff;">USDX Compounding Team</strong></p>
               </td>
