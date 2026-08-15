@@ -687,7 +687,7 @@ export default function LandingExperience() {
       <canvas ref={canvasRef} className="particle-canvas" aria-hidden="true" />
 
       <nav className="site-nav glass-panel">
-        <Link href="/" className="brand"><span>U</span> USDX <i>•</i> OS <small>YOUTH WING</small></Link>
+        <Link href="/" className="brand"><span>U</span> USDX <i>•</i> OS</Link>
         <div className="nav-links"><a href="#protocol">Protocol</a><a href="#capabilities">Capabilities</a><a href="#signal">Signal</a></div>
         <Link href="/guide" className="nav-cta">Open guide <b>↗</b></Link>
       </nav>

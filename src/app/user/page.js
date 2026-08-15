@@ -73,7 +73,7 @@ export default async function UserPage({ searchParams }) {
   return (
     <main className="user-shell">
       <nav className="guide-nav glass-panel">
-        <Link href="/" className="guide-brand"><span>U</span> USDX <small>YOUTH WING</small></Link>
+        <Link href="/" className="guide-brand"><span>U</span> USDX</Link>
         <Link href="/" className="guide-back">← Back to landing</Link>
       </nav>
 

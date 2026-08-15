@@ -5,7 +5,7 @@ export default function PlanGuide({ plan }) {
   const maxIds = Math.max(...graph.map((point) => point.ids));
   return (
     <main className="guide-shell">
-      <header className="guide-nav glass-panel"><Link href="/" className="guide-brand"><span>U</span> USDX <small>YOUTH WING</small></Link><Link href="/guide" className="guide-back">← All plans</Link></header>
+      <header className="guide-nav glass-panel"><Link href="/" className="guide-brand"><span>U</span> USDX</Link><Link href="/guide" className="guide-back">← All plans</Link></header>
       <section className="plan-hero">
         <p className="guide-kicker">{plan.horizon}-MONTH COMPOUNDING ROADMAP</p><h1>{plan.price} <em>{plan.name.replace("Compounding Plan", "")}</em></h1><p>{plan.summary}</p>
         <div className="progress-wrap glass-panel"><div className="progress-meta"><span>ROADMAP PROGRESS</span><b>0 / {plan.horizon} MONTHS</b></div><div className="progress-track"><i /></div><div className="progress-months"><span>START</span><span>MONTH {plan.horizon}</span></div></div>
