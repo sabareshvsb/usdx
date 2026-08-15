@@ -1,6 +1,5 @@
 "use client";
 
-import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const COIN_IMG = "/images/usdxcoin.PNG";
@@ -626,9 +625,12 @@ export default function CoinIntro({ onFinish }) {
     };
 
     let cleanupScene = null;
+    let startedRef = false;
 
-    const start = () => {
-      if (disposedRef.current) return;
+    const tryStart = () => {
+      if (disposedRef.current || startedRef) return;
+      if (!window.THREE || !window.gsap) return;
+      startedRef = true;
       cleanupScene = build();
       if (!cleanupScene) startExit(true);
     };
@@ -641,20 +643,20 @@ export default function CoinIntro({ onFinish }) {
       };
     }
 
-    start();
+    tryStart();
     const poll = window.setInterval(() => {
-      if (disposedRef.current) {
+      if (disposedRef.current || startedRef) {
         window.clearInterval(poll);
         return;
       }
       if (window.THREE && window.gsap) {
         window.clearInterval(poll);
-        start();
+        tryStart();
       }
-    }, 160);
+    }, 150);
     const failTimer = window.setTimeout(() => {
       window.clearInterval(poll);
-      if (!cleanupScene) startExit(true);
+      if (!startedRef) startExit(true);
     }, SCRIPT_TIMEOUT);
 
     return () => {
@@ -666,9 +668,6 @@ export default function CoinIntro({ onFinish }) {
 
   return (
     <div className="intro-overlay" ref={overlayRef} role="dialog" aria-modal="true" aria-label="USDX coin reveal">
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" strategy="afterInteractive" id="coin-intro-three" />
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" strategy="afterInteractive" id="coin-intro-gsap" />
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" strategy="afterInteractive" id="coin-intro-scrolltrigger" />
       <canvas ref={canvasRef} className="intro-canvas" aria-hidden="true" />
       <div className="intro-vignette" aria-hidden="true" />
       <div className="intro-veil" ref={flashRef} aria-hidden="true" />

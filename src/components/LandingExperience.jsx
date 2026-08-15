@@ -712,12 +712,12 @@ export default function LandingExperience() {
   }
 
   return (
-    <main className={`usdx-shell${introDone ? "" : " intro-locked"}`} ref={pageRef}>
-      {!introDone ? <CoinIntro onFinish={() => setIntroDone(true)} /> : null}
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" strategy="afterInteractive" onReady={initialise} />
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" strategy="afterInteractive" onReady={initialise} />
-      <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" strategy="afterInteractive" onReady={initialise} />
-      <canvas ref={canvasRef} className="particle-canvas" aria-hidden="true" />
+    <>
+      <main className={`usdx-shell${introDone ? "" : " intro-locked"}`} ref={pageRef}>
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" strategy="afterInteractive" onReady={initialise} />
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" strategy="afterInteractive" onReady={initialise} />
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" strategy="afterInteractive" onReady={initialise} />
+        <canvas ref={canvasRef} className="particle-canvas" aria-hidden="true" />
 
       <nav className="site-nav glass-panel">
         <Link href="/" className="brand"><span>U</span> USDX <i>•</i> OS <small>YOUTH WING</small></Link>
@@ -797,6 +797,8 @@ export default function LandingExperience() {
       <footer className="landing-footer flex-wrap items-start gap-8">
         <div className="ml-auto flex flex-col gap-1 text-right"><span>© 2026 USDX</span><span>COMPOUNDING INTELLIGENCE</span><span className="mt-2 text-[8px] tracking-[.16em] text-white/35">FOR MORE DETAILS VISIT usdx.live</span><span className="text-[8px] tracking-[.16em] text-white/35">FOR TECHNICAL SUPPORT CONTACT usdxcompounding@gmail.com</span></div>
       </footer>
-    </main>
+      </main>
+      {!introDone ? <CoinIntro onFinish={() => setIntroDone(true)} /> : null}
+    </>
   );
 }
