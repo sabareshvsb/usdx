@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { plans, defaultPlan } from "../data/plans";
 import { findInstruction, cycleForDate, parseMonthRange } from "../lib/planGuide";
+import CoinIntro from "./CoinIntro";
 
 
 const subscribeToStorage = (callback) => {
@@ -472,12 +473,14 @@ export default function LandingExperience() {
   const initialized = useRef(false);
   const cleanupRef = useRef(() => {});
   const [gate, setGate] = useState("checking");
+  const [introDone, setIntroDone] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const loginRedirectRef = useRef(false);
   const verifiedEmailRef = useRef("");
+  const heroTlRef = useRef(null);
 
   const registeredEmail = useSyncExternalStore(
     subscribeToStorage,
@@ -648,8 +651,10 @@ export default function LandingExperience() {
     const scrollTrigger = window.ScrollTrigger;
     gsap.registerPlugin(scrollTrigger);
     const context = gsap.context(() => {
-      gsap.from(".reveal-hero", { y: 42, opacity: 0, duration: 1, stagger: 0.13, ease: "power3.out", delay: 0.18 });
-      gsap.from(".orbital", { scale: 0.78, opacity: 0, duration: 1.4, ease: "power3.out", delay: 0.35 });
+      const heroTl = gsap.timeline({ paused: true });
+      heroTl.from(".reveal-hero", { y: 42, opacity: 0, duration: 1, stagger: 0.13, ease: "power3.out" });
+      heroTl.from(".orbital", { scale: 0.78, opacity: 0, duration: 1.4, ease: "power3.out" }, "<");
+      heroTlRef.current = heroTl;
       gsap.utils.toArray(".scroll-reveal").forEach((element) => {
         gsap.from(element, { y: 38, opacity: 0, duration: 0.8, ease: "power3.out", scrollTrigger: { trigger: element, start: "top 86%" } });
       });
@@ -663,11 +668,38 @@ export default function LandingExperience() {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("resize", resize);
       context.revert();
+      heroTlRef.current = null;
       particleGeometry.dispose();
       particles.material.dispose();
       renderer.dispose();
     };
+
+    window.dispatchEvent(new Event("usdx:scene-ready"));
   }, []);
+
+  useEffect(() => {
+    if (gate !== "ready") return;
+    let interval;
+    const tryInit = () => {
+      if (initialized.current) {
+        if (interval) clearInterval(interval);
+        return;
+      }
+      if (window.THREE && window.gsap && window.ScrollTrigger) {
+        if (interval) clearInterval(interval);
+        initialise();
+      }
+    };
+    tryInit();
+    interval = setInterval(tryInit, 200);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [gate, initialise]);
+
+  useEffect(() => {
+    if (introDone && heroTlRef.current) heroTlRef.current.play();
+  }, [introDone]);
 
   useEffect(() => () => cleanupRef.current(), []);
 
@@ -680,7 +712,8 @@ export default function LandingExperience() {
   }
 
   return (
-    <main className="usdx-shell" ref={pageRef}>
+    <main className={`usdx-shell${introDone ? "" : " intro-locked"}`} ref={pageRef}>
+      {!introDone ? <CoinIntro onFinish={() => setIntroDone(true)} /> : null}
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" strategy="afterInteractive" onReady={initialise} />
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" strategy="afterInteractive" onReady={initialise} />
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" strategy="afterInteractive" onReady={initialise} />
