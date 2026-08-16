@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured } from "../../../../lib/supabase";
 import { MONTHLY_EMAILS } from "../../../../data/monthlyEmails";
 import { cycleForDate } from "../../../../lib/planGuide";
@@ -18,6 +20,12 @@ const transporter = nodemailer.createTransport({
 
 function personalize(body, name) {
   return body.replace("Dear USDX-SMART Member,", `Dear ${name},`);
+}
+
+function instructionsAttachment(stakeAmount) {
+  if (String(stakeAmount) !== "5000") return [];
+  const pdfPath = join(process.cwd(), "public", "downloads", "USDX5000NEW_INSTRUCTIONS.pdf");
+  return [{ filename: "USDX5000NEW_INSTRUCTIONS.pdf", content: readFileSync(pdfPath) }];
 }
 
 function buildProgressText(name, cycle, content) {
@@ -128,6 +136,7 @@ export async function GET(request) {
         subject: content.subject,
         text: buildProgressText(name, cycle, content),
         html: buildProgressHtml(name, cycle, content),
+        attachments: instructionsAttachment(row["stake_amount"]),
         headers: {
           "X-Priority": "3",
           "List-Unsubscribe": `<mailto:${user}?subject=unsubscribe>`,
