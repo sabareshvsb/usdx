@@ -412,6 +412,112 @@ function WalletSection({ email }) {
       ) : null}
 
       {status === "done" && stake ? <NotificationSection email={email} /> : null}
+      {status === "done" && stake ? <PushSection email={email} /> : null}
+    </section>
+  );
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i += 1) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+function PushSection({ email }) {
+  const [enabled, setEnabled] = useState(false);
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState("");
+  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
+  const unsupported = !supported || !vapidKey;
+
+  useEffect(() => {
+    if (unsupported) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+        const subscription = registration ? await registration.pushManager.getSubscription() : null;
+        if (!cancelled && subscription) setEnabled(true);
+      } catch {
+        // no subscription saved yet
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [unsupported]);
+
+  const handleToggle = async (checked) => {
+    if (status === "loading") return;
+    setError("");
+    setStatus("loading");
+    try {
+      if (checked) {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") throw new Error("Notification permission was denied.");
+        const registration = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        });
+        const response = await fetch("/api/push-subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, subscription: subscription.toJSON() }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not enable notifications.");
+        setEnabled(true);
+      } else {
+        const registration = await navigator.serviceWorker.getRegistration("/sw.js");
+        const subscription = registration ? await registration.pushManager.getSubscription() : null;
+        if (subscription) await subscription.unsubscribe();
+        const response = await fetch("/api/push-subscription", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not disable notifications.");
+        setEnabled(false);
+      }
+      setStatus("done");
+    } catch (err) {
+      setError(err.message);
+      setStatus("idle");
+    }
+  };
+
+  return (
+    <section className="notification-section glass-panel scroll-reveal">
+      <p className="eyebrow notification-eyebrow"><span /> USDX / PUSH NOTIFICATIONS</p>
+      <h2 className="notification-title">Enable notification</h2>
+      <p className="notification-question">Get an instant browser notification whenever your monthly USDX-SMART compounding update is ready.</p>
+      <label className={`notification-box${enabled ? " is-active" : ""}`}>
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={status === "loading" || unsupported}
+          onChange={(event) => handleToggle(event.target.checked)}
+        />
+        <span>Enable browser notifications</span>
+      </label>
+      {unsupported ? (
+        <p className="notification-error" role="alert">Browser notifications are not supported in this browser.</p>
+      ) : null}
+      {status === "done" && enabled ? (
+        <p className="notification-note is-success" role="status">Browser notifications are enabled.</p>
+      ) : null}
+      {status === "done" && !enabled ? (
+        <p className="notification-note" role="status">Browser notifications are disabled.</p>
+      ) : null}
+      {error ? <p className="notification-error" role="alert">{error}</p> : null}
     </section>
   );
 }

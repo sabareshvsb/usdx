@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import webpush from "web-push";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { SUPABASE_URL, supabaseHeaders, supabaseConfigured } from "../../../../lib/supabase";
@@ -17,6 +18,14 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_PASS,
   },
 });
+
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+const vapidSubject = process.env.VAPID_SUBJECT || "mailto:usdxcompounding@gmail.com";
+
+if (vapidPublicKey && vapidPrivateKey) {
+  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+}
 
 function personalize(body, name) {
   return body.replace("Dear USDX-SMART Member,", `Dear ${name},`);
@@ -92,9 +101,10 @@ export async function GET(request) {
 
   let rows;
   try {
-    const select = encodeURIComponent('email,name,stake_amount,"date of stake"');
+    const filter = encodeURIComponent("or=(notification.eq.1,push_subscription.not.is.null)");
+    const select = encodeURIComponent('email,name,stake_amount,"date of stake",notification,push_subscription');
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/usdxcompounding?notification=eq.1&select=${select}`,
+      `${SUPABASE_URL}/rest/v1/usdxcompounding?${filter}&select=${select}`,
       { headers: supabaseHeaders() }
     );
     if (!response.ok) {
@@ -112,6 +122,10 @@ export async function GET(request) {
     const dateOfStake = row["date of stake"];
     if (!stakeAmount || !dateOfStake) continue;
 
+    const emailEnabled = row["notification"] === true || row["notification"] === 1;
+    const pushEnabled = Boolean(row["push_subscription"] && row["push_subscription"].endpoint);
+    if (!emailEnabled && !pushEnabled) continue;
+
     const { cycle, daysSinceStake } = cycleForDate(dateOfStake);
     if (daysSinceStake <= 0 || daysSinceStake % 30 !== 0) continue;
 
@@ -122,30 +136,62 @@ export async function GET(request) {
     const content = monthly[cycle - 1];
     if (!content) continue;
 
-    dueUsers.push({ row, cycle, content });
+    dueUsers.push({ row, cycle, content, emailEnabled, pushEnabled });
   }
 
-  const result = { due: dueUsers.length, sent: 0, failed: [] };
-  for (const { row, cycle, content } of dueUsers) {
+  const result = { due: dueUsers.length, sent: 0, pushed: 0, failed: [] };
+  for (const { row, cycle, content, emailEnabled, pushEnabled } of dueUsers) {
     const name = row["name"] || "there";
-    try {
-      await transporter.sendMail({
-        from: `"USDX-SMART Team" <${user}>`,
-        to: row.email,
-        replyTo: user,
-        subject: content.subject,
-        text: buildProgressText(name, cycle, content),
-        html: buildProgressHtml(name, cycle, content),
-        attachments: instructionsAttachment(row["stake_amount"]),
-        headers: {
-          "X-Priority": "3",
-          "List-Unsubscribe": `<mailto:${user}?subject=unsubscribe>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        },
-      });
-      result.sent += 1;
-    } catch (err) {
-      result.failed.push({ email: row.email, error: err.message });
+    if (emailEnabled) {
+      try {
+        await transporter.sendMail({
+          from: `"USDX-SMART Team" <${user}>`,
+          to: row.email,
+          replyTo: user,
+          subject: content.subject,
+          text: buildProgressText(name, cycle, content),
+          html: buildProgressHtml(name, cycle, content),
+          attachments: instructionsAttachment(row["stake_amount"]),
+          headers: {
+            "X-Priority": "3",
+            "List-Unsubscribe": `<mailto:${user}?subject=unsubscribe>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
+        });
+        result.sent += 1;
+      } catch (err) {
+        result.failed.push({ email: row.email, error: err.message });
+      }
+    }
+    if (pushEnabled && vapidPublicKey && vapidPrivateKey) {
+      try {
+        await webpush.sendNotification(
+          row["push_subscription"],
+          JSON.stringify({
+            title: content.subject,
+            body: `Your USDX-SMART compounding update for Cycle ${cycle} is ready.`,
+            url: "/",
+          })
+        );
+        result.pushed += 1;
+      } catch (err) {
+        if (err && (err.statusCode === 404 || err.statusCode === 410)) {
+          try {
+            await fetch(
+              `${SUPABASE_URL}/rest/v1/usdxcompounding?email=eq.${encodeURIComponent(row.email)}&columns=push_subscription`,
+              {
+                method: "PATCH",
+                headers: supabaseHeaders(),
+                body: JSON.stringify({ push_subscription: null }),
+              }
+            );
+          } catch {
+            // ignore cleanup failures
+          }
+        } else {
+          result.failed.push({ email: row.email, pushError: err.message });
+        }
+      }
     }
   }
 
