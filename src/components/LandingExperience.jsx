@@ -95,7 +95,7 @@ function WelcomeBox({ name }) {
   );
 }
 
-function WalletSection({ email }) {
+function WalletSection({ email, onMetricsUpdate }) {
   const [walletAddress, setWalletAddress] = useState("");
   const [status, setStatus] = useState("idle");
   const [stake, setStake] = useState(null);
@@ -252,6 +252,27 @@ function WalletSection({ email }) {
         minute: "2-digit",
       })
     : "";
+
+  useEffect(() => {
+    if (!onMetricsUpdate) return;
+    if (!stake || !planData) {
+      onMetricsUpdate(null);
+      return;
+    }
+    const graph = planData.graph;
+    const maxIds = graph && graph.length ? graph[graph.length - 1] : 1;
+    const currentIds = graph && graph.length > cycle - 1 ? graph[cycle - 1] : 1;
+    const pct = maxIds > 0 ? ((currentIds / maxIds) * 100) : 0;
+    const nextStep = planData.steps
+      .map(([label]) => {
+        const m = label.match(/(\d+)/);
+        return m ? Number(m[1]) : null;
+      })
+      .filter((m) => m !== null && m > cycle)
+      .sort((a, b) => a - b)[0];
+    const nextMonth = nextStep || planData.horizon;
+    onMetricsUpdate({ cycle, pct, nextMonth });
+  }, [stake, planData, cycle, onMetricsUpdate]);
 
   const wallet2Label = stake2
     ? new Date(`${stake2.stakeDate}T00:00:00`).toLocaleString("en-GB", {
@@ -582,6 +603,7 @@ export default function LandingExperience() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [heroMetrics, setHeroMetrics] = useState(null);
   const loginRedirectRef = useRef(false);
   const verifiedEmailRef = useRef("");
 
@@ -820,15 +842,15 @@ export default function LandingExperience() {
               className="floating-logo"
             />
           </div>
-          <div className="metric-card top"><small>ACTIVE SIGNAL</small><strong>+24.8%</strong><span>Momentum index</span></div>
-          <div className="metric-card bottom"><small>NEXT MILESTONE</small><strong>MONTH 37</strong><span className="pulse-dot">● On track</span></div>
+          <div className="metric-card top"><small>ACTIVE SIGNAL</small><strong>{heroMetrics ? `+${heroMetrics.pct.toFixed(1)}%` : "+24.8%"}</strong><span>{heroMetrics ? "Plan progress" : "Momentum index"}</span></div>
+          <div className="metric-card bottom"><small>NEXT MILESTONE</small><strong>{heroMetrics ? `MONTH ${heroMetrics.nextMonth}` : "MONTH 37"}</strong><span className="pulse-dot">● {heroMetrics ? "On track" : "On track"}</span></div>
         </div>
       </section>
 
       {registeredEmail ? (
         <>
           <WelcomeBox name={registeredName || "there"} />
-          <WalletSection email={registeredEmail} />
+          <WalletSection email={registeredEmail} onMetricsUpdate={setHeroMetrics} />
         </>
       ) : null}
 
